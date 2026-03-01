@@ -1,0 +1,129 @@
+.feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: 150px;
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: var(--space-3);
+    text-align: center;
+    padding: var(--space-8);
+}
+
+.emptyIcon {
+    font-size: 2rem;
+    color: var(--green);
+    animation: pulse 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.emptyTitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.emptyText {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+.message {
+    animation: slideIn 0.3s ease-out forwards;
+    opacity: 0;
+}
+
+.messageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+}
+
+.agentLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.05em;
+}
+
+.agentDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+}
+
+.timestamp {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.messageBody {
+    padding: var(--space-3);
+    background: rgba(0, 255, 136, 0.03);
+    border: 1px solid rgba(0, 255, 136, 0.08);
+    border-radius: var(--radius-md);
+    border-left: 2px solid var(--green);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.heading {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: var(--space-3) 0 var(--space-2);
+}
+
+.heading:first-child {
+    margin-top: 0;
+}
+
+.paragraph {
+    margin-bottom: var(--space-2);
+}
+
+.bulletItem {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+    padding-left: var(--space-2);
+}
+
+.bullet {
+    color: var(--green);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.bold {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.streaming {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    animation: pulse 1.5s ease-in-out infinite;
+}

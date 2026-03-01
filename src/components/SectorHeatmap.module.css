@@ -1,0 +1,82 @@
+.body {
+    height: 260px;
+    padding: var(--space-3);
+}
+
+.skeleton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.legend {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.legendDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Tooltip */
+.tooltip {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-elevated);
+    min-width: 200px;
+    font-family: var(--font-mono);
+}
+
+.tooltipHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tooltipName {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tooltipTicker {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.tooltipRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+}
+
+.tooltipRow span:last-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}

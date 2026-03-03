@@ -24,7 +24,7 @@ export default function StatusBar() {
             </div>
             <div className={styles.section}>
                 <span className={styles.key}>MODEL</span>
-                <span className={styles.value}>GPT-4o</span>
+                <span className={styles.value}>{process.env.NEXT_PUBLIC_LLM_LABEL || "OLLAMA"}</span>
             </div>
             <div className={styles.section}>
                 <span className={styles.key}>DATA</span>

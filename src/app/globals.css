@@ -4,6 +4,34 @@
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss" layer(tailwind);
+
+@layer tailwind {
+  @theme {
+    --color-bg-primary: #0a0a0f;
+    --color-bg-secondary: #10101a;
+    --color-bg-tertiary: #161625;
+    --color-bg-card: #12121e;
+    --color-bg-card-hover: #1a1a2e;
+    --color-bg-elevated: #1e1e32;
+    --color-border-subtle: rgba(255, 255, 255, 0.06);
+    --color-border-default: rgba(255, 255, 255, 0.1);
+    --color-border-strong: rgba(255, 255, 255, 0.15);
+    --color-border-accent: rgba(0, 255, 136, 0.3);
+    --color-text-primary: #e8e8f0;
+    --color-text-secondary: #8b8ba3;
+    --color-text-tertiary: #5a5a72;
+    --color-text-muted: #3d3d52;
+    --color-neon-green: #00ff88;
+    --color-neon-red: #ff3b5c;
+    --color-neon-blue: #4d9fff;
+    --color-neon-amber: #ffb84d;
+    --color-neon-purple: #a78bfa;
+    --color-neon-cyan: #22d3ee;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
 
 :root {
   /* ── Core Palette ── */
@@ -225,38 +253,83 @@ body {
 
 /* ── Keyframes ── */
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes ticker-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.1); }
-  50% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.25); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(0, 255, 136, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.25);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* ── Terminal Cursor ── */
@@ -269,9 +342,25 @@ body {
 }
 
 /* ── Value Colors ── */
-.value-positive { color: var(--green); }
-.value-negative { color: var(--red); }
-.value-neutral { color: var(--text-secondary); }
+.value-positive {
+  color: var(--green);
+}
+
+.value-negative {
+  color: var(--red);
+}
+
+.value-neutral {
+  color: var(--text-secondary);
+}
+
+/* ── App Shell ── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
 
 /* ── Grid Layout ── */
 .terminal-grid {
@@ -280,6 +369,8 @@ body {
   grid-template-rows: auto 1fr 1fr auto auto;
   gap: var(--space-3);
   padding: var(--space-3);
+  flex: 1;
+  min-width: 0;
   height: 100vh;
   max-height: 100vh;
   grid-template-areas:
@@ -290,12 +381,29 @@ body {
     "status   status";
 }
 
-.terminal-grid > .ticker-area { grid-area: ticker; }
-.terminal-grid > .heatmap-area { grid-area: heatmap; }
-.terminal-grid > .earnings-area { grid-area: earnings; }
-.terminal-grid > .feed-area { grid-area: feed; }
-.terminal-grid > .input-area { grid-area: input; }
-.terminal-grid > .status-area { grid-area: status; }
+.terminal-grid>.ticker-area {
+  grid-area: ticker;
+}
+
+.terminal-grid>.heatmap-area {
+  grid-area: heatmap;
+}
+
+.terminal-grid>.earnings-area {
+  grid-area: earnings;
+}
+
+.terminal-grid>.feed-area {
+  grid-area: feed;
+}
+
+.terminal-grid>.input-area {
+  grid-area: input;
+}
+
+.terminal-grid>.status-area {
+  grid-area: status;
+}
 
 /* ── Glassmorphism ── */
 .glass {

@@ -2,19 +2,9 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef } from "react";
+import { COMPONENT_REGISTRY, TOOL_LABELS } from "@/lib/component-registry";
 import styles from "./MarketFeed.module.css";
-
-interface TextPart {
-    type: "text";
-    text: string;
-}
-
-function getTextFromParts(parts: unknown[]): string {
-    return (parts as TextPart[])
-        .filter((p) => p.type === "text" && p.text)
-        .map((p) => p.text)
-        .join("");
-}
+import genStyles from "./generative/generative.module.css";
 
 export default function MarketFeed() {
     const { messages, status } = useChat({ id: "market-feed" });
@@ -56,74 +46,131 @@ export default function MarketFeed() {
                         </div>
                     </div>
                 ) : (
-                    assistantMessages.map((message, i) => {
-                        const text = getTextFromParts(message.parts);
-                        return (
-                            <div key={message.id} className={styles.message} style={{ animationDelay: `${i * 50}ms` }}>
-                                <div className={styles.messageHeader}>
-                                    <div className={styles.agentLabel}>
-                                        <span className={styles.agentDot} />
-                                        MARKETMIND AGENT
-                                    </div>
-                                    <span className={styles.timestamp}>
-                                        {new Date().toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                            hour12: false,
-                                        })}
-                                    </span>
+                    assistantMessages.map((message, i) => (
+                        <div key={message.id} className={styles.message} style={{ animationDelay: `${i * 50}ms` }}>
+                            <div className={styles.messageHeader}>
+                                <div className={styles.agentLabel}>
+                                    <span className={styles.agentDot} />
+                                    MARKETMIND AGENT
                                 </div>
-                                <div className={styles.messageBody}>
-                                    {text.split("\n").map((line: string, j: number) => {
-                                        if (line.startsWith("**") && line.endsWith("**")) {
-                                            return (
-                                                <h4 key={j} className={styles.heading}>
-                                                    {line.replace(/\*\*/g, "")}
-                                                </h4>
-                                            );
-                                        }
-                                        if (line.startsWith("- ") || line.startsWith("• ")) {
-                                            return (
-                                                <div key={j} className={styles.bulletItem}>
-                                                    <span className={styles.bullet}>›</span>
-                                                    <span
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: line
-                                                                .slice(2)
-                                                                .replace(
+                                <span className={styles.timestamp}>
+                                    {new Date().toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        second: "2-digit",
+                                        hour12: false,
+                                    })}
+                                </span>
+                            </div>
+                            <div className={styles.messageBody}>
+                                {message.parts.map((part, j) => {
+                                    // ── Text parts → markdown renderer ──
+                                    if (part.type === "text") {
+                                        return (
+                                            <div key={`text-${j}`}>
+                                                {part.text.split("\n").map((line: string, k: number) => {
+                                                    if (line.startsWith("**") && line.endsWith("**")) {
+                                                        return (
+                                                            <h4 key={k} className={styles.heading}>
+                                                                {line.replace(/\*\*/g, "")}
+                                                            </h4>
+                                                        );
+                                                    }
+                                                    if (line.startsWith("- ") || line.startsWith("• ")) {
+                                                        return (
+                                                            <div key={k} className={styles.bulletItem}>
+                                                                <span className={styles.bullet}>›</span>
+                                                                <span
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: line
+                                                                            .slice(2)
+                                                                            .replace(
+                                                                                /\*\*(.*?)\*\*/g,
+                                                                                '<strong class="' + styles.bold + '">$1</strong>'
+                                                                            ),
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    }
+                                                    if (line.trim() === "") return <br key={k} />;
+                                                    return (
+                                                        <p
+                                                            key={k}
+                                                            className={styles.paragraph}
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: line.replace(
                                                                     /\*\*(.*?)\*\*/g,
-                                                                    '<strong class="' +
-                                                                    styles.bold +
-                                                                    '">$1</strong>'
+                                                                    '<strong class="' + styles.bold + '">$1</strong>'
                                                                 ),
-                                                        }}
-                                                    />
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    }
+
+                                    // ── Tool parts → generative UI components ──
+                                    if (part.type.startsWith("tool-")) {
+                                        const toolName = part.type.replace("tool-", "");
+                                        const Component = COMPONENT_REGISTRY[toolName];
+
+                                        if (!Component) {
+                                            // Unknown tool — skip
+                                            return null;
+                                        }
+
+                                        const toolPart = part as {
+                                            type: string;
+                                            toolCallId: string;
+                                            state: string;
+                                            output?: unknown;
+                                        };
+
+                                        // Loading state
+                                        if (toolPart.state === "input-streaming" || toolPart.state === "input-available") {
+                                            return (
+                                                <div key={toolPart.toolCallId} className={genStyles.skeleton}>
+                                                    <span className={genStyles.skeletonDot} />
+                                                    {TOOL_LABELS[toolName] || "Processing…"}
                                                 </div>
                                             );
                                         }
-                                        if (line.trim() === "") return <br key={j} />;
-                                        return (
-                                            <p
-                                                key={j}
-                                                className={styles.paragraph}
-                                                dangerouslySetInnerHTML={{
-                                                    __html: line.replace(
-                                                        /\*\*(.*?)\*\*/g,
-                                                        '<strong class="' + styles.bold + '">$1</strong>'
-                                                    ),
-                                                }}
-                                            />
-                                        );
-                                    })}
-                                    {isStreaming &&
-                                        i === assistantMessages.length - 1 && (
-                                            <span className="cursor-blink" />
-                                        )}
-                                </div>
+
+                                        // Error state
+                                        if (toolPart.state === "output-error") {
+                                            return (
+                                                <div key={toolPart.toolCallId} style={{
+                                                    padding: "var(--space-3)",
+                                                    color: "var(--red)",
+                                                    fontFamily: "var(--font-mono)",
+                                                    fontSize: "var(--text-xs)",
+                                                }}>
+                                                    ⚠ Tool error: failed to load data
+                                                </div>
+                                            );
+                                        }
+
+                                        // Output available → render the component
+                                        if (toolPart.state === "output-available" && toolPart.output) {
+                                            return (
+                                                <Component key={toolPart.toolCallId} data={toolPart.output} />
+                                            );
+                                        }
+
+                                        return null;
+                                    }
+
+                                    return null;
+                                })}
+                                {isStreaming &&
+                                    i === assistantMessages.length - 1 && (
+                                        <span className="cursor-blink" />
+                                    )}
                             </div>
-                        );
-                    })
+                        </div>
+                    ))
                 )}
             </div>
         </div>

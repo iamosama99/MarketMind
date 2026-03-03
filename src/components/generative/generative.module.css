@@ -1,0 +1,420 @@
+/* ============================================
+   GENERATIVE UI — Shared Component Styles
+   Inline chat-rendered components for AI tool output
+   ============================================ */
+
+/* ── Container ── */
+.genContainer {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin: var(--space-3) 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+.genContainer:hover {
+    border-color: var(--border-default);
+}
+
+.genHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+}
+
+.genTitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.genBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    font-family: var(--font-mono);
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.genBody {
+    padding: var(--space-3);
+}
+
+/* ── MetricCard ── */
+.metricCard {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin: var(--space-3) 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+.metricCard:hover {
+    border-color: var(--border-default);
+}
+
+.metricIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.metricIconPositive {
+    background: var(--green-bg);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.metricIconNegative {
+    background: var(--red-bg);
+    border: 1px solid rgba(255, 59, 92, 0.2);
+}
+
+.metricContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.metricLabel {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.metricValue {
+    font-family: var(--font-mono);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.metricChange {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.metricChangePositive {
+    background: var(--green-bg);
+    color: var(--green);
+}
+
+.metricChangeNegative {
+    background: var(--red-bg);
+    color: var(--red);
+}
+
+.metricDescription {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+/* ── Sector Cards ── */
+.sectorGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-2);
+}
+
+.sectorCard {
+    padding: var(--space-3);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.sectorCard:hover {
+    border-color: var(--border-default);
+}
+
+.sectorCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+}
+
+.sectorName {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sectorTicker {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.sectorBarWrap {
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: var(--space-2);
+}
+
+.sectorBar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease-out;
+}
+
+.sectorMeta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.sectorScore {
+    font-weight: 600;
+}
+
+.riskBadge {
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.riskCritical {
+    background: rgba(255, 59, 92, 0.15);
+    color: #ff3b5c;
+    border: 1px solid rgba(255, 59, 92, 0.25);
+}
+
+.riskHigh {
+    background: rgba(255, 107, 53, 0.15);
+    color: #ff6b35;
+    border: 1px solid rgba(255, 107, 53, 0.25);
+}
+
+.riskModerate {
+    background: rgba(255, 184, 77, 0.15);
+    color: #ffb84d;
+    border: 1px solid rgba(255, 184, 77, 0.25);
+}
+
+.riskLow {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+/* ── Earnings Table ── */
+.earningsTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.earningsTable th {
+    text-align: left;
+    padding: var(--space-2) var(--space-2);
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.625rem;
+}
+
+.earningsTable td {
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.earningsTable tr:last-child td {
+    border-bottom: none;
+}
+
+.earningsTable tr:hover td {
+    background: var(--bg-tertiary);
+}
+
+.earningsTicker {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.earningsCompany {
+    color: var(--text-tertiary);
+    font-size: 0.625rem;
+    display: block;
+}
+
+/* ── Market Overview Grid ── */
+.indexGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-2);
+}
+
+.indexCard {
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.indexCard:hover {
+    border-color: var(--border-default);
+}
+
+.indexName {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-bottom: 2px;
+}
+
+.indexValue {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.indexChange {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+/* ── News Feed ── */
+.newsItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.newsItem:last-child {
+    border-bottom: none;
+}
+
+.newsSentiment {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.sentimentBullish {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.sentimentBearish {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(255, 59, 92, 0.2);
+}
+
+.sentimentNeutral {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid rgba(255, 184, 77, 0.2);
+}
+
+.newsContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.newsHeadline {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.newsMeta {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.impactHigh {
+    color: var(--red);
+}
+
+.impactMedium {
+    color: var(--amber);
+}
+
+.impactLow {
+    color: var(--text-tertiary);
+}
+
+/* ── Loading Skeleton ── */
+.skeleton {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.skeletonDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s ease-in-out infinite;
+}

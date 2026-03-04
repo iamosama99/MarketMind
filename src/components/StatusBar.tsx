@@ -27,6 +27,10 @@ export default function StatusBar() {
                 <span className={styles.value}>{process.env.NEXT_PUBLIC_LLM_LABEL || "OLLAMA"}</span>
             </div>
             <div className={styles.section}>
+                <span className={styles.key}>PIPELINE</span>
+                <span className={styles.value} style={{ color: "var(--green)" }}>MULTI-AGENT</span>
+            </div>
+            <div className={styles.section}>
                 <span className={styles.key}>DATA</span>
                 <span className={styles.value}>MOCK v1.0</span>
             </div>

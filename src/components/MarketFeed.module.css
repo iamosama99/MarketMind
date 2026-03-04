@@ -127,3 +127,28 @@
     letter-spacing: 0.05em;
     animation: pulse 1.5s ease-in-out infinite;
 }
+
+.pipelineBadges {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+    letter-spacing: 0.02em;
+}
+
+.pipelineBadge {
+    padding: 1px 6px;
+    background: rgba(0, 255, 136, 0.06);
+    border: 1px solid rgba(0, 255, 136, 0.12);
+    border-radius: 3px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.pipelineArrow {
+    color: var(--text-muted);
+    opacity: 0.5;
+    font-size: 9px;
+}

@@ -8,43 +8,28 @@ import {
     showMetricInput,
     showNewsInput,
 } from "@/lib/schemas";
+import { buildMarketMindGraph } from "@/lib/agents/graph";
 
 export const maxDuration = 60;
 
 // ── Provider Selection ──
-// When OPENAI_API_KEY is set → use OpenAI (gpt-4o)
-// Otherwise → use Ollama local LLM via OpenAI-compatible endpoint
 function getModel() {
     if (process.env.OPENAI_API_KEY) {
         const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
         return openai(process.env.OPENAI_MODEL || "gpt-4o");
     }
 
-    // Ollama's OpenAI-compatible API
     const ollama = createOpenAI({
         baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
-        apiKey: "ollama", // Ollama doesn't need a real key
+        apiKey: "ollama",
     });
     return ollama(process.env.OLLAMA_MODEL || "llama3.1");
 }
 
-export async function POST(req: Request) {
-    const { messages } = await req.json();
-
-    const marketContext = getMarketSummary();
-
-    const modelMessages = await convertToModelMessages(messages);
-
-    const result = streamText({
-        model: getModel(),
-        system: `You are MarketMind, an autonomous market intelligence agent. You are an elite AI financial analyst specializing in identifying how artificial intelligence is disrupting specific market sectors across both US and Indian markets.
+// ── Fallback system prompt (used when LangGraph pipeline is skipped) ──
+const FALLBACK_SYSTEM_PROMPT = `You are MarketMind, an autonomous market intelligence agent. You are an elite AI financial analyst specializing in identifying how artificial intelligence is disrupting specific market sectors across both US and Indian markets.
 
 Your personality: Direct, data-driven, slightly intense. You speak like a senior analyst at a quantitative hedge fund. Use precise numbers. Reference specific companies and their earnings when relevant. Be provocative in your analysis — don't hedge excessively.
-
-You have deep knowledge of:
-- US markets: S&P 500, NASDAQ, major tech and financial stocks
-- Indian markets: Nifty 50, Nifty IT, Sensex, major IT services companies (TCS, Infosys, Wipro, HCL Tech)
-- Cross-market comparisons: Indian IT outsourcing vs US tech, banking sector automation
 
 TOOL USAGE — CRITICAL:
 - When a user asks about sectors, AI vulnerability, or automation risk, you MUST use the showSectorAnalysis tool to display interactive data.
@@ -59,92 +44,118 @@ FORMATTING RULES for text parts:
 - Use **bold** for key metrics and company names
 - Use bullet points for lists
 - Keep paragraphs tight — max 3 sentences each
-- End with a clear thesis or actionable insight
+- End with a clear thesis or actionable insight`;
 
-CURRENT MARKET DATA:
-${marketContext}
-
-When analyzing sectors, consider:
-1. Which jobs within the sector are most immediately automatable
-2. How companies in the sector are responding (investing in AI vs. being disrupted by it)
-3. The gap between AI vulnerability score and current stock performance (potential mispricings)
-4. Earnings surprise patterns — are companies mentioning AI more or less?
-5. Cross-market dynamics — how does AI disruption in US markets affect Indian IT services?`,
-        messages: modelMessages,
-        tools: {
-            showSectorAnalysis: {
-                description:
-                    "Display an interactive sector analysis panel showing AI vulnerability scores, automation risk, and performance data. Use this when the user asks about sector comparisons, AI disruption, or automation risk rankings.",
-                inputSchema: showSectorAnalysisInput,
-                execute: async ({ market, limit }) => {
-                    let sectors = getSectorData();
-                    if (market) {
-                        sectors = sectors.filter((s) => s.market === market);
-                    }
-                    sectors.sort((a, b) => b.aiVulnerability - a.aiVulnerability);
-                    if (limit) {
-                        sectors = sectors.slice(0, limit);
-                    }
-                    return { sectors };
-                },
-            },
-            showEarningsReport: {
-                description:
-                    "Display an earnings report table showing revenue, EPS, beat/miss status, AI mentions, and price changes. Use this when the user asks about company earnings, revenue, or financial performance.",
-                inputSchema: showEarningsReportInput,
-                execute: async ({ ticker, sector, market }) => {
-                    let earnings = getEarningsReports();
-                    if (ticker) {
-                        earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
-                    }
-                    if (sector) {
-                        earnings = earnings.filter((e) => e.sector.toLowerCase().includes(sector.toLowerCase()));
-                    }
-                    if (market) {
-                        earnings = earnings.filter((e) => e.market === market);
-                    }
-                    return { earnings };
-                },
-            },
-            showMarketOverview: {
-                description:
-                    "Display a market overview panel showing major indices with current values and changes. Use this when the user asks about market performance, index levels, or how a specific market is doing.",
-                inputSchema: showMarketOverviewInput,
-                execute: async ({ market }) => {
-                    let indices = getMarketIndices();
-                    if (market) {
-                        indices = indices.filter((i) => i.market === market);
-                    }
-                    return { indices };
-                },
-            },
-            showMetric: {
-                description:
-                    "Display a single highlighted metric card to draw attention to one important data point. Use this for key takeaways, e.g. 'NVDA revenue beat by 5.95%'.",
-                inputSchema: showMetricInput,
-                execute: async ({ label, value, change, description }) => {
-                    return { label, value, change, description };
-                },
-            },
-            showNews: {
-                description:
-                    "Display a filtered news feed showing recent headlines with sentiment and impact indicators. Use this when the user asks about recent news, market sentiment, or sector-specific developments.",
-                inputSchema: showNewsInput,
-                execute: async ({ sector, sentiment, limit }) => {
-                    let news = getMarketNews();
-                    if (sector) {
-                        news = news.filter((n) => n.sector.toLowerCase().includes(sector.toLowerCase()));
-                    }
-                    if (sentiment) {
-                        news = news.filter((n) => n.sentiment === sentiment);
-                    }
-                    news = news.slice(0, limit ?? 5);
-                    return { news };
-                },
+// ── Shared tool definitions (used by both LangGraph and fallback paths) ──
+function getToolDefinitions() {
+    return {
+        showSectorAnalysis: {
+            description:
+                "Display an interactive sector analysis panel showing AI vulnerability scores, automation risk, and performance data. Use this when the user asks about sector comparisons, AI disruption, or automation risk rankings.",
+            inputSchema: showSectorAnalysisInput,
+            execute: async ({ market, limit }: { market?: "US" | "IN"; limit?: number }) => {
+                let sectors = getSectorData();
+                if (market) sectors = sectors.filter((s) => s.market === market);
+                sectors.sort((a, b) => b.aiVulnerability - a.aiVulnerability);
+                if (limit) sectors = sectors.slice(0, limit);
+                return { sectors };
             },
         },
+        showEarningsReport: {
+            description:
+                "Display an earnings report table showing revenue, EPS, beat/miss status, AI mentions, and price changes. Use this when the user asks about company earnings, revenue, or financial performance.",
+            inputSchema: showEarningsReportInput,
+            execute: async ({ ticker, sector, market }: { ticker?: string; sector?: string; market?: "US" | "IN" }) => {
+                let earnings = getEarningsReports();
+                if (ticker) earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
+                if (sector) earnings = earnings.filter((e) => e.sector.toLowerCase().includes(sector.toLowerCase()));
+                if (market) earnings = earnings.filter((e) => e.market === market);
+                return { earnings };
+            },
+        },
+        showMarketOverview: {
+            description:
+                "Display a market overview panel showing major indices with current values and changes. Use this when the user asks about market performance, index levels, or how a specific market is doing.",
+            inputSchema: showMarketOverviewInput,
+            execute: async ({ market }: { market?: "US" | "IN" }) => {
+                let indices = getMarketIndices();
+                if (market) indices = indices.filter((i) => i.market === market);
+                return { indices };
+            },
+        },
+        showMetric: {
+            description:
+                "Display a single highlighted metric card to draw attention to one important data point. Use this for key takeaways, e.g. 'NVDA revenue beat by 5.95%'.",
+            inputSchema: showMetricInput,
+            execute: async ({ label, value, change, description }: { label: string; value: string; change: number; description: string }) => {
+                return { label, value, change, description };
+            },
+        },
+        showNews: {
+            description:
+                "Display a filtered news feed showing recent headlines with sentiment and impact indicators. Use this when the user asks about recent news, market sentiment, or sector-specific developments.",
+            inputSchema: showNewsInput,
+            execute: async ({ sector, sentiment, limit }: { sector?: string; sentiment?: "BULLISH" | "BEARISH" | "NEUTRAL"; limit?: number }) => {
+                let news = getMarketNews();
+                if (sector) news = news.filter((n) => n.sector.toLowerCase().includes(sector.toLowerCase()));
+                if (sentiment) news = news.filter((n) => n.sentiment === sentiment);
+                news = news.slice(0, limit ?? 5);
+                return { news };
+            },
+        },
+    };
+}
+
+export async function POST(req: Request) {
+    const { messages } = await req.json();
+    const modelMessages = await convertToModelMessages(messages);
+
+    // Extract the latest user message
+    const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+    const userQuery = lastUserMessage?.content || "";
+
+    let systemPrompt: string;
+    let agentPipeline: string[] = [];
+
+    // ── Run LangGraph multi-agent pipeline ──
+    // Only run if OpenAI API key is available (LangGraph agents need it)
+    if (process.env.OPENAI_API_KEY && userQuery) {
+        try {
+            const graph = buildMarketMindGraph();
+
+            const result = await graph.invoke({
+                currentQuery: userQuery,
+            });
+
+            // Use the enriched system prompt from the Synthesis agent
+            systemPrompt = result.synthesisPrompt || FALLBACK_SYSTEM_PROMPT;
+            agentPipeline = result.agentPipeline || [];
+
+            console.log(`[MarketMind] Agent pipeline: ${agentPipeline.join(" → ")}`);
+        } catch (error) {
+            console.error("[MarketMind] LangGraph pipeline error, falling back:", error);
+            systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + getMarketSummary();
+            agentPipeline = ["⚠️ Fallback"];
+        }
+    } else {
+        // No API key or no query — use fallback
+        systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + getMarketSummary();
+        agentPipeline = ["🤖 Direct"];
+    }
+
+    // ── Stream the final response using AI SDK ──
+    // The LangGraph pipeline enriches the system prompt;
+    // streamText handles the actual streaming + tool execution
+    const result = streamText({
+        model: getModel(),
+        system: systemPrompt,
+        messages: modelMessages,
+        tools: getToolDefinitions(),
         maxOutputTokens: 1500,
         temperature: 0.7,
+        headers: {
+            "X-Agent-Pipeline": agentPipeline.join(" → "),
+        },
     });
 
     return result.toUIMessageStreamResponse();

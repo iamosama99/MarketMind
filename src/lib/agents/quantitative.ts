@@ -35,12 +35,12 @@ const TICKER_MAP: Record<string, string> = {
     reliance: "RELIANCE.NS",
 };
 
-function queryMatchesAny(query: string, keywords: string[]): boolean {
+export function queryMatchesAny(query: string, keywords: string[]): boolean {
     const lower = query.toLowerCase();
     return keywords.some((kw) => lower.includes(kw));
 }
 
-function detectMarketFilter(query: string): "US" | "IN" | null {
+export function detectMarketFilter(query: string): "US" | "IN" | null {
     const lower = query.toLowerCase();
     if (lower.includes("india") || lower.includes("indian") || lower.includes("nifty") || lower.includes("sensex") || lower.includes("nse")) {
         return "IN";
@@ -51,7 +51,7 @@ function detectMarketFilter(query: string): "US" | "IN" | null {
     return null;
 }
 
-function detectTicker(query: string): string | null {
+export function detectTicker(query: string): string | null {
     const lower = query.toLowerCase();
     for (const [keyword, ticker] of Object.entries(TICKER_MAP)) {
         if (lower.includes(keyword)) return ticker;
@@ -59,7 +59,7 @@ function detectTicker(query: string): string | null {
     return null;
 }
 
-function detectSector(query: string): string | null {
+export function detectSector(query: string): string | null {
     const lower = query.toLowerCase();
     const sectors = [
         "technology", "tech", "it services", "financial", "banking",

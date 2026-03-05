@@ -76,7 +76,7 @@ async function fetchYFQuote(yfTicker: string): Promise<YFQuote | null> {
     }
 }
 
-function formatMarketCap(raw: number | undefined, market: "US" | "IN"): string | null {
+export function formatMarketCap(raw: number | undefined, market: "US" | "IN"): string | null {
     if (!raw) return null;
     if (market === "US") {
         if (raw >= 1e12) return `$${(raw / 1e12).toFixed(1)}T`;

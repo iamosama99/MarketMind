@@ -1,13 +1,13 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
+import { useChatContext } from "@/lib/chat-context";
 import { useEffect, useRef } from "react";
 import { COMPONENT_REGISTRY, TOOL_LABELS } from "@/lib/component-registry";
 import styles from "./MarketFeed.module.css";
 import genStyles from "./generative/generative.module.css";
 
 export default function MarketFeed() {
-    const { messages, status } = useChat({ id: "market-feed" });
+    const { messages, status } = useChatContext();
 
     const feedRef = useRef<HTMLDivElement>(null);
     const isStreaming = status === "streaming" || status === "submitted";

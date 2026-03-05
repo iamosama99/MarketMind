@@ -1,6 +1,6 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
+import { useChatContext } from "@/lib/chat-context";
 import { useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
 import styles from "./CommandInput.module.css";
@@ -14,7 +14,7 @@ const SUGGESTIONS = [
 ];
 
 export default function CommandInput() {
-    const { sendMessage, status } = useChat({ id: "market-feed" });
+    const { sendMessage, status } = useChatContext();
     const [inputValue, setInputValue] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
 

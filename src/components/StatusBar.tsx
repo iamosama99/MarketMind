@@ -1,8 +1,30 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import styles from "./StatusBar.module.css";
 
+interface DataStatus {
+    indices: "live" | "mock";
+    sectors: "live" | "mock";
+    earnings: "live" | "mock";
+    news: "live" | "mock";
+}
+
 export default function StatusBar() {
+    const [dataStatus, setDataStatus] = useState<DataStatus | null>(null);
+
+    useEffect(() => {
+        const fetchStatus = () =>
+            fetch("/api/data-status")
+                .then((r) => r.json())
+                .then(setDataStatus)
+                .catch(() => null);
+
+        fetchStatus();
+        const interval = setInterval(fetchStatus, 30_000);
+        return () => clearInterval(interval);
+    }, []);
+
     const now = new Date();
     const timeStr = now.toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -15,6 +37,12 @@ export default function StatusBar() {
         day: "numeric",
         year: "numeric",
     });
+
+    const isLive = dataStatus && (
+        dataStatus.indices === "live" || dataStatus.sectors === "live"
+    );
+    const dataLabel = isLive ? "LIVE" : "MOCK v1.0";
+    const dataColor = isLive ? "var(--green)" : undefined;
 
     return (
         <div className={styles.bar}>
@@ -32,7 +60,7 @@ export default function StatusBar() {
             </div>
             <div className={styles.section}>
                 <span className={styles.key}>DATA</span>
-                <span className={styles.value}>MOCK v1.0</span>
+                <span className={styles.value} style={{ color: dataColor }}>{dataLabel}</span>
             </div>
             <div className={styles.section}>
                 <span className={styles.key}>REFRESH</span>

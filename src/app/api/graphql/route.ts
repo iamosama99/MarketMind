@@ -7,7 +7,7 @@ import {
     getMarketSummary,
     type SectorData,
     type EarningsReport,
-} from "@/lib/market-data";
+} from "@/lib/market-data-service";
 
 const typeDefs = /* GraphQL */ `
   enum AutomationRisk {
@@ -91,23 +91,23 @@ const typeDefs = /* GraphQL */ `
 
 const resolvers = {
     Query: {
-        sectors: (_: unknown, args: { market?: string }) => {
-            const sectors = getSectorData();
+        sectors: async (_: unknown, args: { market?: string }) => {
+            const sectors = await getSectorData();
             if (args.market) {
                 return sectors.filter((s: SectorData) => s.market === args.market);
             }
             return sectors;
         },
 
-        sector: (_: unknown, args: { ticker: string }) => {
-            return getSectorData().find((s: SectorData) => s.ticker === args.ticker) || null;
+        sector: async (_: unknown, args: { ticker: string }) => {
+            return (await getSectorData()).find((s: SectorData) => s.ticker === args.ticker) || null;
         },
 
-        earnings: (
+        earnings: async (
             _: unknown,
             args: { ticker?: string; sector?: string; market?: string; limit?: number }
         ) => {
-            let earnings = getEarningsReports();
+            let earnings = await getEarningsReports();
             if (args.ticker) {
                 earnings = earnings.filter((e: EarningsReport) => e.ticker === args.ticker);
             }
@@ -123,8 +123,8 @@ const resolvers = {
             return earnings;
         },
 
-        indices: (_: unknown, args: { market?: string }) => {
-            const indices = getMarketIndices();
+        indices: async (_: unknown, args: { market?: string }) => {
+            const indices = await getMarketIndices();
             if (args.market) {
                 return indices.filter(
                     (i: { market: string }) => i.market === args.market
@@ -133,11 +133,11 @@ const resolvers = {
             return indices;
         },
 
-        news: (
+        news: async (
             _: unknown,
             args: { sector?: string; sentiment?: string; limit?: number }
         ) => {
-            let news = getMarketNews();
+            let news = await getMarketNews();
             if (args.sector) {
                 news = news.filter((n) => n.sector === args.sector);
             }
@@ -150,7 +150,7 @@ const resolvers = {
             return news;
         },
 
-        marketSummary: () => getMarketSummary(),
+        marketSummary: async () => getMarketSummary(),
     },
 };
 

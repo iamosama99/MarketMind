@@ -8,7 +8,7 @@ import {
     getEarningsReports,
     getMarketIndices,
     getMarketNews,
-} from "@/lib/market-data";
+} from "@/lib/market-data-service";
 import type { MarketMindStateType } from "./state";
 
 // Keywords that signal which data sources to fetch
@@ -85,7 +85,7 @@ export async function quantitativeNode(
 
     // Fetch sectors if relevant
     if (queryMatchesAny(query, SECTOR_KEYWORDS)) {
-        let sectors = getSectorData();
+        let sectors = await getSectorData();
         if (marketFilter) {
             sectors = sectors.filter((s) => s.market === marketFilter);
         }
@@ -95,7 +95,7 @@ export async function quantitativeNode(
 
     // Fetch earnings if relevant
     if (queryMatchesAny(query, EARNINGS_KEYWORDS) || ticker) {
-        let earnings = getEarningsReports();
+        let earnings = await getEarningsReports();
         if (ticker) {
             earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
         }
@@ -110,7 +110,7 @@ export async function quantitativeNode(
 
     // Fetch indices if relevant
     if (queryMatchesAny(query, INDEX_KEYWORDS)) {
-        let indices = getMarketIndices();
+        let indices = await getMarketIndices();
         if (marketFilter) {
             indices = indices.filter((i) => i.market === marketFilter);
         }
@@ -119,7 +119,7 @@ export async function quantitativeNode(
 
     // Fetch news if relevant
     if (queryMatchesAny(query, NEWS_KEYWORDS) || sector) {
-        let news = getMarketNews();
+        let news = await getMarketNews();
         if (sector) {
             news = news.filter((n) => n.sector.toLowerCase().includes(sector));
         }
@@ -128,9 +128,9 @@ export async function quantitativeNode(
 
     // If nothing matched specifically, fetch a broad overview
     if (Object.keys(data).length === 0) {
-        data.sectors = getSectorData();
-        data.indices = getMarketIndices();
-        data.news = getMarketNews().slice(0, 5);
+        data.sectors = await getSectorData();
+        data.indices = await getMarketIndices();
+        data.news = (await getMarketNews()).slice(0, 5);
     }
 
     return {

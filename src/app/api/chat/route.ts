@@ -1,6 +1,6 @@
 import { streamText, convertToModelMessages } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
-import { getMarketSummary, getSectorData, getEarningsReports, getMarketIndices, getMarketNews } from "@/lib/market-data";
+import { getMarketSummary, getSectorData, getEarningsReports, getMarketIndices, getMarketNews } from "@/lib/market-data-service";
 import {
     showSectorAnalysisInput,
     showEarningsReportInput,
@@ -56,7 +56,7 @@ function getToolDefinitions() {
                 "Display an interactive sector analysis panel showing AI vulnerability scores, automation risk, and performance data. Use this when the user asks about sector comparisons, AI disruption, or automation risk rankings.",
             inputSchema: showSectorAnalysisInput,
             execute: async ({ market, limit }: { market?: "US" | "IN"; limit?: number }) => {
-                let sectors = getSectorData();
+                let sectors = await getSectorData();
                 if (market) sectors = sectors.filter((s) => s.market === market);
                 sectors.sort((a, b) => b.aiVulnerability - a.aiVulnerability);
                 if (limit) sectors = sectors.slice(0, limit);
@@ -68,7 +68,7 @@ function getToolDefinitions() {
                 "Display an earnings report table showing revenue, EPS, beat/miss status, AI mentions, and price changes. Use this when the user asks about company earnings, revenue, or financial performance.",
             inputSchema: showEarningsReportInput,
             execute: async ({ ticker, sector, market }: { ticker?: string; sector?: string; market?: "US" | "IN" }) => {
-                let earnings = getEarningsReports();
+                let earnings = await getEarningsReports();
                 if (ticker) earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
                 if (sector) earnings = earnings.filter((e) => e.sector.toLowerCase().includes(sector.toLowerCase()));
                 if (market) earnings = earnings.filter((e) => e.market === market);
@@ -80,7 +80,7 @@ function getToolDefinitions() {
                 "Display a market overview panel showing major indices with current values and changes. Use this when the user asks about market performance, index levels, or how a specific market is doing.",
             inputSchema: showMarketOverviewInput,
             execute: async ({ market }: { market?: "US" | "IN" }) => {
-                let indices = getMarketIndices();
+                let indices = await getMarketIndices();
                 if (market) indices = indices.filter((i) => i.market === market);
                 return { indices };
             },
@@ -98,7 +98,7 @@ function getToolDefinitions() {
                 "Display a filtered news feed showing recent headlines with sentiment and impact indicators. Use this when the user asks about recent news, market sentiment, or sector-specific developments.",
             inputSchema: showNewsInput,
             execute: async ({ sector, sentiment, limit }: { sector?: string; sentiment?: "BULLISH" | "BEARISH" | "NEUTRAL"; limit?: number }) => {
-                let news = getMarketNews();
+                let news = await getMarketNews();
                 if (sector) news = news.filter((n) => n.sector.toLowerCase().includes(sector.toLowerCase()));
                 if (sentiment) news = news.filter((n) => n.sentiment === sentiment);
                 news = news.slice(0, limit ?? 5);
@@ -158,12 +158,12 @@ export async function POST(req: Request) {
             console.log(`[MarketMind] Agent pipeline: ${agentPipeline.join(" → ")}`);
         } catch (error) {
             console.error("[MarketMind] LangGraph pipeline error, falling back:", error);
-            systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + getMarketSummary();
+            systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + await getMarketSummary();
             agentPipeline = ["⚠️ Fallback"];
         }
     } else {
         // No API key or no query — use fallback
-        systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + getMarketSummary();
+        systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + await getMarketSummary();
         agentPipeline = ["🤖 Direct"];
     }
 
@@ -177,9 +177,6 @@ export async function POST(req: Request) {
         tools: getToolDefinitions(),
         maxOutputTokens: 1500,
         temperature: 0.7,
-        headers: {
-            "X-Agent-Pipeline": agentPipeline.join(" → "),
-        },
     });
 
     return result.toUIMessageStreamResponse();

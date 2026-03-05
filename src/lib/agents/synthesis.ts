@@ -5,12 +5,12 @@
 // ============================================
 
 import type { MarketMindStateType } from "./state";
-import { getMarketSummary } from "@/lib/market-data";
+import { getMarketSummary } from "@/lib/market-data-service";
 
 export async function synthesisNode(
     state: MarketMindStateType
 ): Promise<Partial<MarketMindStateType>> {
-    const baseContext = getMarketSummary();
+    const baseContext = await getMarketSummary();
 
     // Build enriched context from agent pipeline outputs
     const sections: string[] = [];

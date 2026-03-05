@@ -1,9 +1,8 @@
 "use client";
 
 import { useQuery } from "urql";
-import { useRef, useState, useEffect } from "react";
 import { GET_SECTORS } from "@/lib/queries";
-import { Treemap, Tooltip } from "recharts";
+import { Treemap, Tooltip, ResponsiveContainer } from "recharts";
 import styles from "./SectorHeatmap.module.css";
 
 interface SectorItem {
@@ -45,7 +44,7 @@ function CustomContent(props: {
     ticker?: string;
     market?: string;
 }) {
-    const { x = 0, y = 0, width = 0, height = 0, vulnerability = 0, ticker, market } = props;
+    const { x = 0, y = 0, width = 0, height = 0, vulnerability = 0, ticker } = props;
 
     if (width < 50 || height < 40) return null;
     const color = getColor(vulnerability);
@@ -119,9 +118,7 @@ function CustomTooltip({
     return (
         <div className={styles.tooltip}>
             <div className={styles.tooltipHeader}>
-                <span className={styles.tooltipName}>
-                    {data.name}
-                </span>
+                <span className={styles.tooltipName}>{data.name}</span>
                 <span className={styles.tooltipTicker}>{data.ticker}</span>
             </div>
             <div className={styles.tooltipRow}>
@@ -149,13 +146,8 @@ function CustomTooltip({
             </div>
             <div className={styles.tooltipRow}>
                 <span>Performance</span>
-                <span
-                    className={
-                        data.performance >= 0 ? "value-positive" : "value-negative"
-                    }
-                >
-                    {data.performance >= 0 ? "+" : ""}
-                    {data.performance}%
+                <span className={data.performance >= 0 ? "value-positive" : "value-negative"}>
+                    {data.performance >= 0 ? "+" : ""}{data.performance}%
                 </span>
             </div>
             <div className={styles.tooltipRow}>
@@ -168,24 +160,6 @@ function CustomTooltip({
 
 export default function SectorHeatmap() {
     const [{ data: queryData, fetching }] = useQuery({ query: GET_SECTORS });
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [dims, setDims] = useState({ width: 0, height: 0 });
-
-    useEffect(() => {
-        const el = containerRef.current;
-        if (!el) return;
-        const observer = new ResizeObserver((entries) => {
-            const entry = entries[0];
-            if (entry) {
-                setDims({
-                    width: entry.contentRect.width,
-                    height: entry.contentRect.height,
-                });
-            }
-        });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
 
     if (fetching || !queryData) {
         return (
@@ -227,11 +201,9 @@ export default function SectorHeatmap() {
                     <div className="badge badge-red">LIVE</div>
                 </div>
             </div>
-            <div className={styles.body} ref={containerRef}>
-                {dims.width > 0 && dims.height > 0 && (
+            <div className={styles.body}>
+                <ResponsiveContainer width="100%" height="100%">
                     <Treemap
-                        width={dims.width}
-                        height={dims.height}
                         data={treeData}
                         dataKey="value"
                         aspectRatio={16 / 6}
@@ -241,7 +213,7 @@ export default function SectorHeatmap() {
                     >
                         <Tooltip content={<CustomTooltip />} />
                     </Treemap>
-                )}
+                </ResponsiveContainer>
             </div>
             <div className={styles.legend}>
                 <div className={styles.legendItem}>

@@ -53,6 +53,16 @@ export async function synthesisNode(
         }
     }
 
+    // Research agent sources
+    if (state.retrievedChunks && state.retrievedChunks.length > 0) {
+        sections.push("=== RESEARCH AGENT SOURCES ===");
+        sections.push(`Retrieved ${state.retrievedChunks.length} relevant research documents:`);
+        for (const chunk of state.retrievedChunks) {
+            sections.push(`\n--- SOURCE: "${chunk.title}" (${chunk.source}) [Relevance: ${(chunk.score * 100).toFixed(1)}%] ---`);
+            sections.push(chunk.content.slice(0, 1500)); // Limit per-chunk context
+        }
+    }
+
     // Pipeline metadata
     const pipelineStr = state.agentPipeline.join(" → ");
 
@@ -74,9 +84,11 @@ TOOL USAGE — CRITICAL:
 - When the Quantitative agent has fetched indices, you MUST use the showMarketOverview tool.
 - When you want to highlight a single important metric, use showMetric.
 - When the Quantitative agent has fetched news, you MUST use the showNews tool.
+- When the Research agent has retrieved relevant documents, you MUST use the showResearchSources tool to display them. Pass the user's query as the 'query' parameter.
 - ALWAYS accompany tool calls with your text analysis. Tools show the data, you provide the insight.
 - You can use multiple tools in a single response if the data is available.
 ${state.sentimentAnalysis ? `\nQUALITATIVE GUIDANCE:\n- Weave the qualitative analysis into your text response\n- Mention the overall sentiment: ${state.sentimentAnalysis.overallSentiment}\n- Include cross-market insights when relevant` : ""}
+${state.retrievedChunks && state.retrievedChunks.length > 0 ? `\nRESEARCH GUIDANCE:\n- Cite specific research sources in your text (e.g., "According to [Source Name]...")\n- Reference data points and statistics from the research documents\n- Use the showResearchSources tool to display the source cards` : ""}
 
 FORMATTING RULES for text parts:
 - Use **bold** for key metrics and company names

@@ -8,6 +8,7 @@ import EarningsTable from "@/components/generative/EarningsTable";
 import MarketOverview from "@/components/generative/MarketOverview";
 import MetricCard from "@/components/generative/MetricCard";
 import NewsFeed from "@/components/generative/NewsFeed";
+import ResearchSources from "@/components/generative/ResearchSources";
 import type { ComponentType } from "react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,6 +18,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentType<{ data: any }>> = 
     showMarketOverview: MarketOverview,
     showMetric: MetricCard,
     showNews: NewsFeed,
+    showResearchSources: ResearchSources,
 };
 
 export const TOOL_LABELS: Record<string, string> = {
@@ -25,4 +27,5 @@ export const TOOL_LABELS: Record<string, string> = {
     showMarketOverview: "Loading market indices…",
     showMetric: "Preparing metric…",
     showNews: "Fetching news…",
+    showResearchSources: "Searching research database…",
 };

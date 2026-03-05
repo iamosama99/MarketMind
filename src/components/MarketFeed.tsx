@@ -63,7 +63,7 @@ export default function MarketFeed() {
                                 </span>
                             </div>
                             <div className={styles.pipelineBadges}>
-                                {["🧠 Supervisor", "📊 Quantitative", "📰 Qualitative", "✍️ Synthesis"].map((agent, idx, arr) => (
+                                {["🧠 Supervisor", "📊 Quantitative", "📰 Qualitative", "🔍 Research", "✍️ Synthesis"].map((agent, idx, arr) => (
                                     <span key={agent}>
                                         <span className={styles.pipelineBadge}>{agent}</span>
                                         {idx < arr.length - 1 && <span className={styles.pipelineArrow}> → </span>}

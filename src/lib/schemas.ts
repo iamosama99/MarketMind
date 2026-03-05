@@ -35,6 +35,12 @@ export const showNewsInput = z.object({
     limit: z.number().optional().describe("Max number of news items. Defaults to 5."),
 });
 
+export const showResearchSourcesInput = z.object({
+    query: z.string().describe("The research query to find relevant sources for."),
+    sector: z.string().optional().describe("Filter by sector name."),
+    limit: z.number().optional().describe("Max number of sources. Defaults to 3."),
+});
+
 // ───── Tool Output Types (for component props) ─────
 
 export type SectorAnalysisOutput = {
@@ -94,5 +100,17 @@ export type NewsOutput = {
         sentiment: string;
         timestamp: string;
         impact: string;
+    }>;
+};
+
+export type ResearchSourcesOutput = {
+    sources: Array<{
+        title: string;
+        source: string;
+        sector: string;
+        market: string;
+        content: string;
+        score: number;
+        documentType: string;
     }>;
 };

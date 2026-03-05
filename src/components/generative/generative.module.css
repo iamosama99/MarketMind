@@ -400,6 +400,116 @@
     color: var(--text-tertiary);
 }
 
+/* ── Research Sources ── */
+.researchBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    font-family: var(--font-mono);
+    background: rgba(167, 139, 250, 0.1);
+    color: #a78bfa;
+    border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.researchItem {
+    padding: var(--space-3);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    transition: border-color var(--transition-fast);
+}
+
+.researchItem:last-child {
+    margin-bottom: 0;
+}
+
+.researchItem:hover {
+    border-color: rgba(167, 139, 250, 0.3);
+}
+
+.researchItemHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+}
+
+.researchType {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+}
+
+.relevanceBadge {
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.relevanceHigh {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--green);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.relevanceMedium {
+    background: rgba(255, 184, 77, 0.1);
+    color: var(--amber);
+    border: 1px solid rgba(255, 184, 77, 0.2);
+}
+
+.relevanceLow {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+}
+
+.researchTitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+    line-height: 1.4;
+}
+
+.researchSnippet {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-2);
+    opacity: 0.8;
+}
+
+.researchMeta {
+    display: flex;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.researchMarketTag {
+    padding: 0 4px;
+    border-radius: 2px;
+    background: rgba(77, 159, 255, 0.1);
+    color: #4d9fff;
+    border: 1px solid rgba(77, 159, 255, 0.2);
+    font-weight: 600;
+}
+
 /* ── Loading Skeleton ── */
 .skeleton {
     display: flex;

@@ -14,6 +14,7 @@
     "@langchain/core": "^1.1.30",
     "@langchain/langgraph": "^1.2.0",
     "@langchain/openai": "^1.2.12",
+    "@pinecone-database/pinecone": "^7.1.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@urql/core": "^6.0.1",
     "@urql/next": "^2.0.0",

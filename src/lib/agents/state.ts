@@ -5,15 +5,16 @@
 
 import { Annotation } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
+import type { DocumentChunk } from "@/lib/vector-store";
 
 // ── Agent Names ──
-export type AgentName = "supervisor" | "quantitative" | "qualitative" | "synthesis";
+export type AgentName = "supervisor" | "quantitative" | "qualitative" | "research" | "synthesis";
 
 // ── Routing Decision ──
 export type RoutingDecision = {
     agents: AgentName[];
     reasoning: string;
-    queryType: "QUANTITATIVE" | "QUALITATIVE" | "MIXED" | "DIRECT";
+    queryType: "QUANTITATIVE" | "QUALITATIVE" | "MIXED" | "RESEARCH" | "FULL" | "DIRECT";
 };
 
 // ── Sentiment Result ──
@@ -64,6 +65,12 @@ export const MarketMindState = Annotation.Root({
     sentimentAnalysis: Annotation<SentimentResult | null>({
         reducer: (_prev, next) => next,
         default: () => null,
+    }),
+
+    // Research (RAG — from Research agent)
+    retrievedChunks: Annotation<DocumentChunk[]>({
+        reducer: (_prev, next) => next,
+        default: () => [],
     }),
 
     // Output (from Synthesis agent)

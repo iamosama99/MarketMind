@@ -7,8 +7,10 @@ import {
     showMarketOverviewInput,
     showMetricInput,
     showNewsInput,
+    showResearchSourcesInput,
 } from "@/lib/schemas";
 import { buildMarketMindGraph } from "@/lib/agents/graph";
+import { getVectorStore } from "@/lib/vector-store";
 
 export const maxDuration = 60;
 
@@ -101,6 +103,28 @@ function getToolDefinitions() {
                 if (sentiment) news = news.filter((n) => n.sentiment === sentiment);
                 news = news.slice(0, limit ?? 5);
                 return { news };
+            },
+        },
+        showResearchSources: {
+            description:
+                "Display research sources and analyst reports retrieved by the Research Agent. Use this when the Research Agent has found relevant documents, or when the user asks about methodology, deep analysis, or wants sourced insights. Shows document cards with relevance scores.",
+            inputSchema: showResearchSourcesInput,
+            execute: async ({ query, sector, limit }: { query: string; sector?: string; limit?: number }) => {
+                const store = getVectorStore();
+                const filter: Record<string, string> = {};
+                if (sector) filter.sector = sector;
+                const chunks = await store.search(query, limit ?? 3, Object.keys(filter).length > 0 ? filter : undefined);
+                return {
+                    sources: chunks.map((c) => ({
+                        title: c.title,
+                        source: c.source,
+                        sector: c.sector,
+                        market: c.market,
+                        content: c.content.slice(0, 500),
+                        score: c.score,
+                        documentType: c.documentType,
+                    })),
+                };
             },
         },
     };

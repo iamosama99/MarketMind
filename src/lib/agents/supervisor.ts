@@ -12,22 +12,26 @@ const ROUTING_SYSTEM_PROMPT = `You are the Supervisor agent for MarketMind, a fi
 Available agents:
 1. QUANTITATIVE — For queries needing market data: sector analysis, earnings reports, market indices, stock prices, company financials. This agent fetches deterministic data.
 2. QUALITATIVE — For queries needing sentiment analysis, news interpretation, narrative context, cross-market comparisons, or deeper commentary on WHY metrics matter.
-3. DIRECT — For simple greetings, meta-questions about MarketMind, or queries that don't need any data lookup.
+3. RESEARCH — For queries needing deep analysis, background context, analyst reports, methodology explanations, historical comparisons, or insights from research documents. This agent retrieves relevant research papers and analyst notes via semantic search.
+4. DIRECT — For simple greetings, meta-questions about MarketMind, or queries that don't need any data lookup.
 
 Routing rules:
 - If the user asks about specific data (sectors, earnings, indices, news), route to QUANTITATIVE.
 - If the user asks "why" or wants analysis/sentiment, also route to QUALITATIVE.
-- Most substantive queries should go to both QUANTITATIVE + QUALITATIVE (MIXED) for the richest response.
+- If the user asks about methodology, deep analysis, research, reports, historical context, or wants sourced insights, route to RESEARCH.
+- Most substantive queries should go to QUANTITATIVE + QUALITATIVE (MIXED) for the richest response.
+- For deep analysis that needs data + research, use FULL (all agents).
 - Only use DIRECT for greetings, help requests, or meta-questions.
 
 Respond with valid JSON only:
 {
-  "queryType": "QUANTITATIVE" | "QUALITATIVE" | "MIXED" | "DIRECT",
-  "agents": ["supervisor", "quantitative", "qualitative", "synthesis"],
+  "queryType": "QUANTITATIVE" | "QUALITATIVE" | "MIXED" | "RESEARCH" | "FULL" | "DIRECT",
+  "agents": ["supervisor", "quantitative", "qualitative", "research", "synthesis"],
   "reasoning": "brief explanation of routing decision"
 }
 
-Always include "supervisor" and "synthesis" in agents. Add "quantitative" and/or "qualitative" based on queryType.`;
+Always include "supervisor" and "synthesis" in agents. Add "quantitative", "qualitative", and/or "research" based on queryType.`;
+
 
 export async function supervisorNode(
     state: MarketMindStateType

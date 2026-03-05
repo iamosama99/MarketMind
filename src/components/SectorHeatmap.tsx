@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from "urql";
+import { useRef, useState, useEffect } from "react";
 import { GET_SECTORS } from "@/lib/queries";
-import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
+import { Treemap, Tooltip } from "recharts";
 import styles from "./SectorHeatmap.module.css";
 
 interface SectorItem {
@@ -75,7 +76,7 @@ function CustomContent(props: {
                         fontFamily="var(--font-mono)"
                         fontWeight={600}
                     >
-                        {market === "IN" ? "🇮🇳 " : ""}{ticker}
+                        {ticker}
                     </text>
                     <text
                         x={x + width / 2}
@@ -119,7 +120,7 @@ function CustomTooltip({
         <div className={styles.tooltip}>
             <div className={styles.tooltipHeader}>
                 <span className={styles.tooltipName}>
-                    {data.market === "IN" ? "🇮🇳 " : "🇺🇸 "}{data.name}
+                    {data.name}
                 </span>
                 <span className={styles.tooltipTicker}>{data.ticker}</span>
             </div>
@@ -167,6 +168,24 @@ function CustomTooltip({
 
 export default function SectorHeatmap() {
     const [{ data: queryData, fetching }] = useQuery({ query: GET_SECTORS });
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dims, setDims] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (entry) {
+                setDims({
+                    width: entry.contentRect.width,
+                    height: entry.contentRect.height,
+                });
+            }
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     if (fetching || !queryData) {
         return (
@@ -204,23 +223,25 @@ export default function SectorHeatmap() {
                     AI Vulnerability Heatmap
                 </div>
                 <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                    <div className="badge badge-amber">US + IN</div>
+                    <div className="badge badge-amber">NIFTY</div>
                     <div className="badge badge-red">LIVE</div>
                 </div>
             </div>
-            <div className={styles.body}>
-                <ResponsiveContainer width="100%" height="100%">
+            <div className={styles.body} ref={containerRef}>
+                {dims.width > 0 && dims.height > 0 && (
                     <Treemap
+                        width={dims.width}
+                        height={dims.height}
                         data={treeData}
                         dataKey="value"
-                        aspectRatio={4 / 3}
+                        aspectRatio={16 / 6}
                         content={<CustomContent />}
                         isAnimationActive={true}
                         animationDuration={600}
                     >
                         <Tooltip content={<CustomTooltip />} />
                     </Treemap>
-                </ResponsiveContainer>
+                )}
             </div>
             <div className={styles.legend}>
                 <div className={styles.legendItem}>

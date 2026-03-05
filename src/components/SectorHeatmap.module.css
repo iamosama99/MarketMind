@@ -1,6 +1,15 @@
 .body {
-    height: 260px;
+    position: relative;
+    height: 320px;
     padding: var(--space-3);
+}
+
+.chartWrap {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
 }
 
 .skeleton {

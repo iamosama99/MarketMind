@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
     LayoutDashboard,
     BarChart3,
-    TrendingUp,
     Newspaper,
     Terminal,
     ChevronLeft,
@@ -28,8 +27,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
         title: "OVERVIEW",
         items: [
             { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
-            { id: "sectors", label: "Sectors", icon: <BarChart3 size={16} />, badge: "15" },
-            { id: "earnings", label: "Earnings", icon: <TrendingUp size={16} />, badge: "14" },
+            { id: "sectors", label: "Sectors", icon: <BarChart3 size={16} />, badge: "10" },
             { id: "news", label: "News Feed", icon: <Newspaper size={16} /> },
         ],
     },

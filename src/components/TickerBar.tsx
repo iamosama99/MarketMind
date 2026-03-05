@@ -33,7 +33,7 @@ export default function TickerBar() {
                 {tickerItems.map((idx, i) => (
                     <div className={styles.item} key={`${idx.ticker}-${i}`}>
                         <span className={styles.name}>
-                            {idx.market === "IN" ? "🇮🇳" : ""} {idx.ticker}
+                            {idx.ticker}
                         </span>
                         <span className={styles.value}>
                             {idx.value.toLocaleString(undefined, {

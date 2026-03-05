@@ -1,7 +1,6 @@
 import Sidebar from "@/components/Sidebar";
 import TickerBar from "@/components/TickerBar";
 import SectorHeatmap from "@/components/SectorHeatmap";
-import EarningsPanel from "@/components/EarningsPanel";
 import MarketFeed from "@/components/MarketFeed";
 import CommandInput from "@/components/CommandInput";
 import StatusBar from "@/components/StatusBar";
@@ -17,9 +16,7 @@ export default function Home() {
         <div className="heatmap-area">
           <SectorHeatmap />
         </div>
-        <div className="earnings-area">
-          <EarningsPanel />
-        </div>
+
         <div className="feed-area">
           <MarketFeed />
         </div>

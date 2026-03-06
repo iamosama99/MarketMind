@@ -1,8 +1,11 @@
 "use client";
 
 import { useQuery } from "urql";
+import { useEffect, useCallback } from "react";
 import { GET_INDICES } from "@/lib/queries";
 import styles from "./TickerBar.module.css";
+
+const POLL_INTERVAL_MS = 30_000; // 30 seconds, matches server TTL
 
 interface IndexData {
     name: string;
@@ -14,15 +17,26 @@ interface IndexData {
 }
 
 export default function TickerBar() {
-    const [{ data, fetching }] = useQuery({ query: GET_INDICES });
+    const [{ data, fetching }, reexecute] = useQuery({ query: GET_INDICES });
 
-    if (fetching || !data) {
+    const refresh = useCallback(() => {
+        reexecute({ requestPolicy: "network-only" });
+    }, [reexecute]);
+
+    useEffect(() => {
+        const id = setInterval(refresh, POLL_INTERVAL_MS);
+        return () => clearInterval(id);
+    }, [refresh]);
+
+    if (fetching && !data) {
         return (
             <div className={styles.ticker}>
                 <div className={styles.loading}>Loading market data...</div>
             </div>
         );
     }
+
+    if (!data) return null;
 
     const indices: IndexData[] = data.indices;
     const tickerItems = [...indices, ...indices];

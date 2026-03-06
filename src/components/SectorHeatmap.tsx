@@ -1,9 +1,12 @@
 "use client";
 
 import { useQuery } from "urql";
+import { useEffect, useCallback } from "react";
 import { GET_SECTORS } from "@/lib/queries";
 import { Treemap, Tooltip, ResponsiveContainer } from "recharts";
 import styles from "./SectorHeatmap.module.css";
+
+const POLL_INTERVAL_MS = 5 * 60_000; // 5 minutes, matches server TTL
 
 interface SectorItem {
     name: string;
@@ -41,13 +44,15 @@ function CustomContent(props: {
     height?: number;
     name?: string;
     vulnerability?: number;
+    performance?: number;
     ticker?: string;
     market?: string;
 }) {
-    const { x = 0, y = 0, width = 0, height = 0, vulnerability = 0, ticker } = props;
+    const { x = 0, y = 0, width = 0, height = 0, vulnerability = 0, performance = 0, ticker } = props;
 
     if (width < 50 || height < 40) return null;
     const color = getColor(vulnerability);
+    const perfColor = performance >= 0 ? "#00ff88" : "#ff3b5c";
 
     return (
         <g>
@@ -68,7 +73,7 @@ function CustomContent(props: {
                 <>
                     <text
                         x={x + width / 2}
-                        y={y + height / 2 - 8}
+                        y={y + height / 2 - 14}
                         textAnchor="middle"
                         fill={color}
                         fontSize={11}
@@ -79,7 +84,7 @@ function CustomContent(props: {
                     </text>
                     <text
                         x={x + width / 2}
-                        y={y + height / 2 + 8}
+                        y={y + height / 2 + 2}
                         textAnchor="middle"
                         fill="var(--text-secondary)"
                         fontSize={9}
@@ -87,20 +92,43 @@ function CustomContent(props: {
                     >
                         {vulnerability}/100
                     </text>
+                    <text
+                        x={x + width / 2}
+                        y={y + height / 2 + 16}
+                        textAnchor="middle"
+                        fill={perfColor}
+                        fontSize={9}
+                        fontFamily="var(--font-mono)"
+                        fontWeight={500}
+                    >
+                        {performance >= 0 ? "+" : ""}{performance.toFixed(2)}%
+                    </text>
                 </>
             )}
             {width <= 80 && width > 50 && (
-                <text
-                    x={x + width / 2}
-                    y={y + height / 2 + 3}
-                    textAnchor="middle"
-                    fill={color}
-                    fontSize={10}
-                    fontFamily="var(--font-mono)"
-                    fontWeight={600}
-                >
-                    {ticker}
-                </text>
+                <>
+                    <text
+                        x={x + width / 2}
+                        y={y + height / 2 - 2}
+                        textAnchor="middle"
+                        fill={color}
+                        fontSize={10}
+                        fontFamily="var(--font-mono)"
+                        fontWeight={600}
+                    >
+                        {ticker}
+                    </text>
+                    <text
+                        x={x + width / 2}
+                        y={y + height / 2 + 12}
+                        textAnchor="middle"
+                        fill={perfColor}
+                        fontSize={8}
+                        fontFamily="var(--font-mono)"
+                    >
+                        {performance >= 0 ? "+" : ""}{performance.toFixed(1)}%
+                    </text>
+                </>
             )}
         </g>
     );
@@ -159,9 +187,18 @@ function CustomTooltip({
 }
 
 export default function SectorHeatmap() {
-    const [{ data: queryData, fetching }] = useQuery({ query: GET_SECTORS });
+    const [{ data: queryData, fetching }, reexecute] = useQuery({ query: GET_SECTORS });
 
-    if (fetching || !queryData) {
+    const refresh = useCallback(() => {
+        reexecute({ requestPolicy: "network-only" });
+    }, [reexecute]);
+
+    useEffect(() => {
+        const id = setInterval(refresh, POLL_INTERVAL_MS);
+        return () => clearInterval(id);
+    }, [refresh]);
+
+    if (fetching && !queryData) {
         return (
             <div className="panel">
                 <div className="panel-header">
@@ -176,6 +213,8 @@ export default function SectorHeatmap() {
             </div>
         );
     }
+
+    if (!queryData) return null;
 
     const sectors: SectorItem[] = queryData.sectors;
     const treeData = sectors.map((s) => ({

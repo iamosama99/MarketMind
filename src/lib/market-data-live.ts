@@ -65,10 +65,23 @@ async function fetchYFQuote(yfTicker: string): Promise<YFQuote | null> {
         const meta = json?.chart?.result?.[0]?.meta;
         if (!meta?.regularMarketPrice) return null;
 
+        const price = meta.regularMarketPrice;
+        const previousClose = meta.previousClose ?? meta.chartPreviousClose;
+
+        // Use API-provided change if available and non-zero;
+        // otherwise calculate from previousClose
+        let change = meta.regularMarketChange ?? 0;
+        let changePercent = meta.regularMarketChangePercent ?? 0;
+
+        if ((!change || change === 0) && previousClose && previousClose > 0) {
+            change = price - previousClose;
+            changePercent = ((price - previousClose) / previousClose) * 100;
+        }
+
         return {
-            price: meta.regularMarketPrice,
-            change: meta.regularMarketChange ?? 0,
-            changePercent: meta.regularMarketChangePercent ?? 0,
+            price,
+            change,
+            changePercent,
             marketCap: meta.marketCap,
         };
     } catch {

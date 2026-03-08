@@ -10,6 +10,9 @@ import {
     getMarketNews,
 } from "@/lib/market-data-service";
 import type { MarketMindStateType } from "./state";
+import { withTimeout } from "./timeout";
+
+const QUANTITATIVE_TIMEOUT_MS = 5_000;
 
 // Keywords that signal which data sources to fetch
 const SECTOR_KEYWORDS = ["sector", "vulnerability", "automation", "risk", "disruption", "ai impact", "heatmap"];
@@ -76,66 +79,76 @@ export function detectSector(query: string): string | null {
 export async function quantitativeNode(
     state: MarketMindStateType
 ): Promise<Partial<MarketMindStateType>> {
-    const query = state.currentQuery;
-    const marketFilter = detectMarketFilter(query);
-    const ticker = detectTicker(query);
-    const sector = detectSector(query);
-
-    const data: Record<string, unknown> = {};
-
-    // Fetch sectors if relevant
-    if (queryMatchesAny(query, SECTOR_KEYWORDS)) {
-        let sectors = await getSectorData();
-        if (marketFilter) {
-            sectors = sectors.filter((s) => s.market === marketFilter);
-        }
-        sectors.sort((a, b) => b.aiVulnerability - a.aiVulnerability);
-        data.sectors = sectors;
-    }
-
-    // Fetch earnings if relevant
-    if (queryMatchesAny(query, EARNINGS_KEYWORDS) || ticker) {
-        let earnings = await getEarningsReports();
-        if (ticker) {
-            earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
-        }
-        if (sector && !ticker) {
-            earnings = earnings.filter((e) => e.sector.toLowerCase().includes(sector));
-        }
-        if (marketFilter && !ticker) {
-            earnings = earnings.filter((e) => e.market === marketFilter);
-        }
-        data.earnings = earnings;
-    }
-
-    // Fetch indices if relevant
-    if (queryMatchesAny(query, INDEX_KEYWORDS)) {
-        let indices = await getMarketIndices();
-        if (marketFilter) {
-            indices = indices.filter((i) => i.market === marketFilter);
-        }
-        data.indices = indices;
-    }
-
-    // Fetch news if relevant
-    if (queryMatchesAny(query, NEWS_KEYWORDS) || sector) {
-        let news = await getMarketNews();
-        if (sector) {
-            news = news.filter((n) => n.sector.toLowerCase().includes(sector));
-        }
-        data.news = news;
-    }
-
-    // If nothing matched specifically, fetch a broad overview
-    if (Object.keys(data).length === 0) {
-        data.sectors = await getSectorData();
-        data.indices = await getMarketIndices();
-        data.news = (await getMarketNews()).slice(0, 5);
-    }
-
-    return {
-        graphqlData: data,
+    const fallbackResult: Partial<MarketMindStateType> = {
+        graphqlData: {},
         completedAgents: ["quantitative"],
-        agentPipeline: ["📊 Quantitative"],
+        agentPipeline: ["📊 Quantitative (timeout)"],
     };
+
+    async function runQuantitative(s: MarketMindStateType): Promise<Partial<MarketMindStateType>> {
+        const query = s.currentQuery;
+        const marketFilter = detectMarketFilter(query);
+        const ticker = detectTicker(query);
+        const sector = detectSector(query);
+
+        const data: Record<string, unknown> = {};
+
+        // Fetch sectors if relevant
+        if (queryMatchesAny(query, SECTOR_KEYWORDS)) {
+            let sectors = await getSectorData();
+            if (marketFilter) {
+                sectors = sectors.filter((sec) => sec.market === marketFilter);
+            }
+            sectors.sort((a, b) => b.aiVulnerability - a.aiVulnerability);
+            data.sectors = sectors;
+        }
+
+        // Fetch earnings if relevant
+        if (queryMatchesAny(query, EARNINGS_KEYWORDS) || ticker) {
+            let earnings = await getEarningsReports();
+            if (ticker) {
+                earnings = earnings.filter((e) => e.ticker === ticker || e.ticker.startsWith(ticker));
+            }
+            if (sector && !ticker) {
+                earnings = earnings.filter((e) => e.sector.toLowerCase().includes(sector));
+            }
+            if (marketFilter && !ticker) {
+                earnings = earnings.filter((e) => e.market === marketFilter);
+            }
+            data.earnings = earnings;
+        }
+
+        // Fetch indices if relevant
+        if (queryMatchesAny(query, INDEX_KEYWORDS)) {
+            let indices = await getMarketIndices();
+            if (marketFilter) {
+                indices = indices.filter((i) => i.market === marketFilter);
+            }
+            data.indices = indices;
+        }
+
+        // Fetch news if relevant
+        if (queryMatchesAny(query, NEWS_KEYWORDS) || sector) {
+            let news = await getMarketNews();
+            if (sector) {
+                news = news.filter((n) => n.sector.toLowerCase().includes(sector));
+            }
+            data.news = news;
+        }
+
+        // If nothing matched specifically, fetch a broad overview
+        if (Object.keys(data).length === 0) {
+            data.sectors = await getSectorData();
+            data.indices = await getMarketIndices();
+            data.news = (await getMarketNews()).slice(0, 5);
+        }
+
+        return {
+            graphqlData: data,
+            completedAgents: ["quantitative"],
+            agentPipeline: ["📊 Quantitative"],
+        };
+    }
+
+    return withTimeout(runQuantitative(state), QUANTITATIVE_TIMEOUT_MS, fallbackResult);
 }

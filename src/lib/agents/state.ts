@@ -84,6 +84,12 @@ export const MarketMindState = Annotation.Root({
         reducer: (prev, next) => [...prev, ...next],
         default: () => [],
     }),
+
+    // Security — canary token for prompt leakage detection
+    canaryToken: Annotation<string>({
+        reducer: (_prev, next) => next,
+        default: () => "",
+    }),
 });
 
 export type MarketMindStateType = typeof MarketMindState.State;

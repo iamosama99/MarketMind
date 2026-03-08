@@ -2,6 +2,9 @@
   "name": "marketmind",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -19,6 +22,8 @@
     "@langchain/openai": "^1.2.12",
     "@pinecone-database/pinecone": "^7.1.0",
     "@tailwindcss/postcss": "^4.2.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.3",
     "@urql/core": "^6.0.1",
     "@urql/next": "^2.0.0",
     "ai": "^6.0.105",

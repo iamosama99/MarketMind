@@ -5,6 +5,9 @@
 
 import { getVectorStore, type DocumentChunk } from "@/lib/vector-store";
 import type { MarketMindStateType } from "./state";
+import { withTimeout } from "./timeout";
+
+const RESEARCH_TIMEOUT_MS = 3000;
 
 // Sector detection for metadata filtering
 function detectSectorFilter(query: string): string | null {
@@ -69,6 +72,22 @@ function detectMarketFilter(query: string): string | null {
 }
 
 export async function researchNode(
+    state: MarketMindStateType
+): Promise<Partial<MarketMindStateType>> {
+    const fallbackResult: Partial<MarketMindStateType> = {
+        retrievedChunks: [],
+        completedAgents: ["research"],
+        agentPipeline: ["🔍 Research (timeout)"],
+    };
+
+    return withTimeout(
+        runResearch(state),
+        RESEARCH_TIMEOUT_MS,
+        fallbackResult
+    );
+}
+
+async function runResearch(
     state: MarketMindStateType
 ): Promise<Partial<MarketMindStateType>> {
     const query = state.currentQuery;

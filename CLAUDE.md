@@ -20,9 +20,9 @@ MarketMind is a Next.js 16 + React 19 financial intelligence terminal. It has a 
 ### Data Flow
 
 1. **User query** → `CommandInput` (disabled until API key set) → `POST /api/chat` with `X-Api-Key` header
-2. **LangGraph pipeline** (if OpenAI key available via BYOK or env): Supervisor routes to Quantitative / Qualitative / Research agents → Synthesis agent produces an enriched system prompt. See `docs/phases/Phase-3-LangGraph-Agents.md`.
+2. **LangGraph pipeline** (if OpenAI key available via BYOK or env): Supervisor routes to Quantitative / Qualitative / Research agents → Synthesis agent produces an enriched system prompt. See `src/lib/agents/graph.ts`.
 3. **AI SDK `streamText`** uses the enriched system prompt + tool definitions to stream a response.
-4. **Generative UI**: when the LLM calls a tool (e.g., `showSectorAnalysis`), the client renders the matching React component from `COMPONENT_REGISTRY`. See `docs/phases/Phase-2-Generative-UI.md`.
+4. **Generative UI**: when the LLM calls a tool (e.g., `showSectorAnalysis`), the client renders the matching React component from `COMPONENT_REGISTRY`. See `src/lib/component-registry.tsx`.
 5. **Fallback / BYOK**: If no OpenAI key, uses `FALLBACK_SYSTEM_PROMPT` with direct market data — also supports local Ollama. User provides their OpenAI API key via a UI modal; key stored in `localStorage`, sent as `X-Api-Key` request header, never logged server-side.
 
 ### Directory Conventions
@@ -31,12 +31,12 @@ When navigating or extending the codebase, follow these location guidelines inst
 
 | Directory/Concept | Location & Purpose |
 |-------------------|--------------------|
-| **API Routes** | `src/app/api/` — Contains Next.js App Router endpoints (`/chat`, `/graphql`, `/data-status`). |
+| **API Routes** | `src/app/api/` — Contains Next.js App Router endpoints (`/chat`, `/graphql`, `/news`, `/data-status`). |
 | **LangGraph Agents** | `src/lib/agents/` — State definition, Graph assembly (`graph.ts`), and individual agent nodes (Supervisor, Quantitative, Qualitative, Synthesis, Research). |
 | **Generative Tools** | `src/lib/schemas.ts` (Zod validation), `src/lib/component-registry.tsx` (Component mapping), `src/app/api/chat/route.ts` (Tool execution definitions). |
 | **React Components** | `src/components/generative/` — Functional React components spawned by the AI. |
 | **Market Data Layer** | `src/lib/` — Contains hybrid fetchers (`market-data-live.ts`, `market-data.ts`), GraphQL clients (`graphql-client.ts`), and caching layers (`cache.ts`). |
-| **Vector DB / RAG**| `src/lib/vector-store.ts`, `src/lib/knowledge-base.ts` — Implements the tiered Pinecone → In-Memory → Keyword fallback logic. See `docs/phases/Phase-4-Extensibility.md`. |
+| **Vector DB / RAG**| `src/lib/vector-store.ts`, `src/lib/knowledge-base.ts` — Implements the tiered Pinecone → In-Memory → Keyword fallback logic. |
 | **Global Providers**| `src/lib/*-context.tsx` — Contains BYOK API key context (`api-key-context.tsx`) and the AI SDK single-instance chat context (`chat-context.tsx`). |
 
 ### Generative UI Workflow

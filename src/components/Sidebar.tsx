@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     BarChart3,
@@ -21,6 +23,7 @@ interface NavItem {
     id: string;
     label: string;
     icon: React.ReactNode;
+    href: string;
     badge?: string;
 }
 
@@ -28,31 +31,33 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
     {
         title: "OVERVIEW",
         items: [
-            { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
-            { id: "sectors", label: "Sectors", icon: <BarChart3 size={16} />, badge: "10" },
-            { id: "news", label: "News Feed", icon: <Newspaper size={16} /> },
+            { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} />, href: "/" },
+            { id: "sectors", label: "Sectors", icon: <BarChart3 size={16} />, href: "/sectors", badge: "10" },
+            { id: "news", label: "News Feed", icon: <Newspaper size={16} />, href: "/news" },
         ],
     },
     {
         title: "INTELLIGENCE",
         items: [
-            { id: "terminal", label: "AI Terminal", icon: <Terminal size={16} /> },
-            { id: "agents", label: "Agents", icon: <Zap size={16} />, badge: "Q2" },
+            { id: "terminal", label: "AI Terminal", icon: <Terminal size={16} />, href: "/terminal" },
         ],
     },
     {
         title: "MARKETS",
         items: [
-            { id: "us", label: "US Markets", icon: <Globe size={16} /> },
-            { id: "in", label: "Indian Markets", icon: <Globe size={16} /> },
+            { id: "us", label: "US Markets", icon: <Globe size={16} />, href: "/us-markets" },
+            { id: "in", label: "Indian Markets", icon: <Globe size={16} />, href: "/indian-markets" },
         ],
     },
 ];
 
 export default function Sidebar() {
     const [collapsed, setCollapsed] = useState(false);
-    const [activeId, setActiveId] = useState("dashboard");
+    const pathname = usePathname();
     const { hasApiKey, setShowModal } = useApiKeyContext();
+
+    const isActive = (href: string) =>
+        href === "/" ? pathname === "/" : pathname.startsWith(href);
 
     return (
         <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
@@ -81,12 +86,12 @@ export default function Sidebar() {
                             <div className={styles.sectionTitle}>{section.title}</div>
                         )}
                         {section.items.map((item) => {
-                            const isActive = item.id === activeId;
-                            const button = (
-                                <button
+                            const active = isActive(item.href);
+                            const link = (
+                                <Link
                                     key={item.id}
-                                    onClick={() => setActiveId(item.id)}
-                                    className={`${styles.navItem} ${isActive ? styles.active : ""}`}
+                                    href={item.href}
+                                    className={`${styles.navItem} ${active ? styles.active : ""}`}
                                 >
                                     <span className={styles.navIcon}>{item.icon}</span>
                                     {!collapsed && (
@@ -97,14 +102,14 @@ export default function Sidebar() {
                                             )}
                                         </>
                                     )}
-                                    {isActive && <span className={styles.activeDot} />}
-                                </button>
+                                    {active && <span className={styles.activeDot} />}
+                                </Link>
                             );
 
                             if (collapsed) {
                                 return (
                                     <Tooltip key={item.id}>
-                                        <TooltipTrigger asChild>{button}</TooltipTrigger>
+                                        <TooltipTrigger asChild>{link}</TooltipTrigger>
                                         <TooltipContent side="right" sideOffset={8}>
                                             {item.label}
                                         </TooltipContent>
@@ -112,7 +117,7 @@ export default function Sidebar() {
                                 );
                             }
 
-                            return button;
+                            return link;
                         })}
                     </div>
                 ))}

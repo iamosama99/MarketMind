@@ -1,15 +1,11 @@
-import SectorHeatmap from "@/components/SectorHeatmap";
 import MarketFeed from "@/components/MarketFeed";
 import CommandInput from "@/components/CommandInput";
 import StatusBar from "@/components/StatusBar";
 
-export default function Home() {
+export default function TerminalPage() {
   return (
-    <main className="terminal-grid">
-      <div className="heatmap-area">
-        <SectorHeatmap />
-      </div>
-      <div className="feed-area">
+    <main className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <MarketFeed />
       </div>
       <div className="input-area">

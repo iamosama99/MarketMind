@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides system architecture guidelines, coding conventions, and strict rules to Claude (claude.ai/code) when working in the `MarketMind` repository.
 
 ## Commands
 
@@ -19,62 +19,52 @@ MarketMind is a Next.js 16 + React 19 financial intelligence terminal. It has a 
 
 ### Data Flow
 
-1. **User query** → `CommandInput` → `POST /api/chat`
-2. **LangGraph pipeline** (if `OPENAI_API_KEY` is set): Supervisor → routes to Quantitative / Qualitative / Research agents → Synthesis agent produces an enriched system prompt
-3. **AI SDK `streamText`** uses the enriched system prompt + tool definitions to stream a response
-4. **Generative UI**: when the LLM calls a tool (e.g. `showSectorAnalysis`), the client renders the matching React component from `COMPONENT_REGISTRY`
-5. **Fallback**: if no OpenAI key, uses `FALLBACK_SYSTEM_PROMPT` with direct market data — also supports local Ollama
+1. **User query** → `CommandInput` (disabled until API key set) → `POST /api/chat` with `X-Api-Key` header
+2. **LangGraph pipeline** (if OpenAI key available via BYOK or env): Supervisor routes to Quantitative / Qualitative / Research agents → Synthesis agent produces an enriched system prompt. See `docs/phases/Phase-3-LangGraph-Agents.md`.
+3. **AI SDK `streamText`** uses the enriched system prompt + tool definitions to stream a response.
+4. **Generative UI**: when the LLM calls a tool (e.g., `showSectorAnalysis`), the client renders the matching React component from `COMPONENT_REGISTRY`. See `docs/phases/Phase-2-Generative-UI.md`.
+5. **Fallback / BYOK**: If no OpenAI key, uses `FALLBACK_SYSTEM_PROMPT` with direct market data — also supports local Ollama. User provides their OpenAI API key via a UI modal; key stored in `localStorage`, sent as `X-Api-Key` request header, never logged server-side.
 
-### Key Files
+### Directory Conventions
 
-| Path | Purpose |
-|---|---|
-| `src/app/api/chat/route.ts` | Main chat endpoint — provider selection, LangGraph invocation, streamText |
-| `src/app/api/graphql/route.ts` | GraphQL API via graphql-yoga (sectors, earnings, indices, news) |
-| `src/lib/agents/graph.ts` | LangGraph `StateGraph` assembly and conditional routing logic |
-| `src/lib/agents/state.ts` | Shared `MarketMindState` annotation schema for the agent pipeline |
-| `src/lib/agents/supervisor.ts` | Classifies query into `QUANTITATIVE/QUALITATIVE/MIXED/RESEARCH/FULL/DIRECT` |
-| `src/lib/agents/quantitative.ts` | Fetches market data via the GraphQL API |
-| `src/lib/agents/qualitative.ts` | Sentiment analysis via LLM |
-| `src/lib/agents/research.ts` | RAG retrieval from vector store |
-| `src/lib/agents/synthesis.ts` | Combines all agent outputs into a final system prompt |
-| `src/lib/vector-store.ts` | Tiered store: Pinecone → in-memory (OpenAI embeddings) → keyword fallback |
-| `src/lib/knowledge-base.ts` | Static research documents indexed by the vector store |
-| `src/lib/market-data.ts` | In-memory market data (sectors, earnings, indices, news) for US + Indian markets |
-| `src/lib/schemas.ts` | Zod schemas for all tool inputs; TypeScript output types for components |
-| `src/lib/component-registry.tsx` | Maps tool name strings → React components for Generative UI rendering |
-| `src/lib/graphql-client.ts` | `@urql/core` client used by quantitative agent to query `/api/graphql` |
-| `src/lib/queries.ts` | GraphQL query strings |
+When navigating or extending the codebase, follow these location guidelines instead of predicting static file names:
 
-### Generative UI Pattern
+| Directory/Concept | Location & Purpose |
+|-------------------|--------------------|
+| **API Routes** | `src/app/api/` — Contains Next.js App Router endpoints (`/chat`, `/graphql`, `/data-status`). |
+| **LangGraph Agents** | `src/lib/agents/` — State definition, Graph assembly (`graph.ts`), and individual agent nodes (Supervisor, Quantitative, Qualitative, Synthesis, Research). |
+| **Generative Tools** | `src/lib/schemas.ts` (Zod validation), `src/lib/component-registry.tsx` (Component mapping), `src/app/api/chat/route.ts` (Tool execution definitions). |
+| **React Components** | `src/components/generative/` — Functional React components spawned by the AI. |
+| **Market Data Layer** | `src/lib/` — Contains hybrid fetchers (`market-data-live.ts`, `market-data.ts`), GraphQL clients (`graphql-client.ts`), and caching layers (`cache.ts`). |
+| **Vector DB / RAG**| `src/lib/vector-store.ts`, `src/lib/knowledge-base.ts` — Implements the tiered Pinecone → In-Memory → Keyword fallback logic. See `docs/phases/Phase-4-Extensibility.md`. |
+| **Global Providers**| `src/lib/*-context.tsx` — Contains BYOK API key context (`api-key-context.tsx`) and the AI SDK single-instance chat context (`chat-context.tsx`). |
 
-Tools are defined in `getToolDefinitions()` in `route.ts` with Zod input schemas from `src/lib/schemas.ts`. When the LLM calls a tool, the AI SDK streams a tool-call part. The client (`MarketFeed`) reads the stream and looks up the tool name in `COMPONENT_REGISTRY` to render the appropriate component. To add a new tool:
-1. Add a Zod schema to `schemas.ts`
-2. Add tool definition + `execute()` to `getToolDefinitions()` in `route.ts`
-3. Create a component in `src/components/generative/`
-4. Register it in `component-registry.tsx`
+### Generative UI Workflow
 
-### LangGraph Agent Pipeline
+To add a new tool, strictly follow these steps:
+1. Add a Zod schema to `src/lib/schemas.ts`.
+2. Add the tool definition and `execute()` logic to `getToolDefinitions()` in `src/app/api/chat/route.ts`.
+3. Create the UI Component in `src/components/generative/`. Use `shadcn/ui`, `lucide-react`, and Tailwind classes.
+4. Register the new component in `src/lib/component-registry.tsx`.
 
-The `MarketMindState` (LangGraph `Annotation.Root`) carries: `currentQuery`, `routingDecision`, `graphqlData`, `sentimentAnalysis`, `retrievedChunks`, `synthesisPrompt`, and `agentPipeline`. The Supervisor agent classifies the query type; conditional edges route through only the relevant agents. The Synthesis agent combines all data into a system prompt string that is passed to `streamText`.
+## Coding Guidelines
 
-### Vector Store Tiers
+When writing or modifying code, adhere to these standards:
 
-`getVectorStore()` selects the implementation based on env vars:
-- `PINECONE_API_KEY` → Pinecone (production)
-- `OPENAI_API_KEY` only → In-memory with OpenAI `text-embedding-3-small` embeddings (1536 dims, index name `marketmind-research`)
-- Neither → Keyword-based fallback (no embeddings needed)
+- **Styling:** Use Tailwind CSS v4. Avoid creating new `.module.css` files unless absolutely necessary. Rely on utility classes within components.
+- **Components:** Create functional React 19 components. Use Server Components by default; add `"use client"` at the top of the file *only* if hooks (`useState`, `useChatContext`, `useEffect`) or interactability are required.
+- **Icons:** Exclusively use `lucide-react`.
+- **Validation:** Always use `zod` for API boundaries, user inputs, and AI Tool schemas. Strongly type all GraphQL requests.
 
-### Environment Variables
+## Testing Guidelines
 
-| Variable | Purpose |
-|---|---|
-| `OPENAI_API_KEY` | Enables LangGraph pipeline, OpenAI models, and in-memory embeddings |
-| `OPENAI_MODEL` | Override model (default: `gpt-4o`) |
-| `PINECONE_API_KEY` | Use Pinecone instead of in-memory vector store |
-| `OLLAMA_BASE_URL` | Ollama endpoint (default: `http://localhost:11434/v1`) |
-| `OLLAMA_MODEL` | Ollama model (default: `llama3.1`) |
+When writing tests:
+- Place test files alongside the source files using the `*.test.ts` or `*.test.tsx` naming convention (e.g., `src/lib/agents/supervisor.test.ts`).
+- Mock complex external layers like Upstash Redis, Pinecone, or live Finnhub API calls to prevent brittle network-dependent tests.
 
-### UI Layout
+## Strict Rules & Guardrails
+> 🚨 **CRITICAL: NEVER VIOLATE THESE RULES**
 
-`src/app/page.tsx` defines a CSS Grid terminal layout (`app-shell` / `terminal-grid`) with named grid areas: `ticker-area`, `heatmap-area`, `feed-area`, `input-area`, `status-area`. Styling is split between `globals.css` (grid/layout/terminal theme) and per-component `.module.css` files.
+1. **API Keys:** **NEVER** log `X-Api-Key` or the user's explicit OpenAI keys server-side or to the console.
+2. **Layout Preservation:** **DO NOT** modify the CSS Grid definitions in `src/app/globals.css` (specifically `app-shell` and `terminal-grid`) without explicit user permission. Doing so breaks the primary "Bloomberg Terminal" aesthetic.
+3. **Typing:** **DO NOT** use `any` types. Provide strict type definitions for GraphQL responses, Agent State schemas, and component props derived from Zod.

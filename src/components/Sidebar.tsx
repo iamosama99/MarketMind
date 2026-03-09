@@ -10,9 +10,11 @@ import {
     ChevronRight,
     Zap,
     Globe,
+    KeyRound,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { useApiKeyContext } from "@/lib/api-key-context";
 import styles from "./Sidebar.module.css";
 
 interface NavItem {
@@ -50,6 +52,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
 export default function Sidebar() {
     const [collapsed, setCollapsed] = useState(false);
     const [activeId, setActiveId] = useState("dashboard");
+    const { hasApiKey, setShowModal } = useApiKeyContext();
 
     return (
         <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
@@ -114,6 +117,46 @@ export default function Sidebar() {
                     </div>
                 ))}
             </nav>
+
+            {/* API Key Settings */}
+            <div className={styles.section} style={{ marginTop: "auto" }}>
+                {!collapsed && <div className={styles.sectionTitle}>SETTINGS</div>}
+                {(() => {
+                    const keyButton = (
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className={styles.navItem}
+                        >
+                            <span className={styles.navIcon}><KeyRound size={16} /></span>
+                            {!collapsed && (
+                                <>
+                                    <span className={styles.navLabel}>API Key</span>
+                                    <span
+                                        className={styles.statusDot}
+                                        style={{
+                                            background: hasApiKey ? "var(--green)" : "var(--red)",
+                                            boxShadow: hasApiKey
+                                                ? "0 0 6px rgba(0,255,136,0.5)"
+                                                : "0 0 6px rgba(255,59,92,0.5)",
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </button>
+                    );
+                    if (collapsed) {
+                        return (
+                            <Tooltip>
+                                <TooltipTrigger asChild>{keyButton}</TooltipTrigger>
+                                <TooltipContent side="right" sideOffset={8}>
+                                    API Key {hasApiKey ? "(Active)" : "(Not Set)"}
+                                </TooltipContent>
+                            </Tooltip>
+                        );
+                    }
+                    return keyButton;
+                })()}
+            </div>
 
             {/* Footer */}
             <div className={styles.footer}>

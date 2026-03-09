@@ -48,7 +48,7 @@ export function detectMarketFilter(query: string): "US" | "IN" | null {
     if (lower.includes("india") || lower.includes("indian") || lower.includes("nifty") || lower.includes("sensex") || lower.includes("nse")) {
         return "IN";
     }
-    if (lower.includes("us ") || lower.includes("american") || lower.includes("s&p") || lower.includes("nasdaq") || lower.includes("dow")) {
+    if (/\bus\b/.test(lower) || lower.includes("american") || lower.includes("s&p") || lower.includes("nasdaq") || lower.includes("dow")) {
         return "US";
     }
     return null;

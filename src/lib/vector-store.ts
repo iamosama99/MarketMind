@@ -18,7 +18,6 @@ export interface DocumentChunk {
 
 const INDEX_NAME = "marketmind-research";
 const EMBEDDING_MODEL = "text-embedding-3-small";
-const EMBEDDING_DIMENSIONS = 1536;
 
 // ── OpenAI Embedding ──
 async function getEmbedding(text: string): Promise<number[]> {

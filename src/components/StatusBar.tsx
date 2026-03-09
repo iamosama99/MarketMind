@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useApiKeyContext } from "@/lib/api-key-context";
 import styles from "./StatusBar.module.css";
 
 interface DataStatus {
@@ -11,6 +12,7 @@ interface DataStatus {
 }
 
 export default function StatusBar() {
+    const { hasApiKey } = useApiKeyContext();
     const [dataStatus, setDataStatus] = useState<DataStatus | null>(null);
 
     useEffect(() => {
@@ -59,16 +61,22 @@ export default function StatusBar() {
                 <span className={styles.value} style={{ color: "var(--green)" }}>MULTI-AGENT</span>
             </div>
             <div className={styles.section}>
+                <span className={styles.key}>API</span>
+                <span className={styles.value} style={{ color: hasApiKey ? "var(--green)" : "var(--red)" }}>
+                    {hasApiKey ? "BYOK" : "NO KEY"}
+                </span>
+            </div>
+            <div className={styles.section}>
                 <span className={styles.key}>DATA</span>
                 <span className={styles.value} style={{ color: dataColor }}>{dataLabel}</span>
             </div>
             <div className={styles.section}>
                 <span className={styles.key}>REFRESH</span>
-                <span className={styles.value}>{timeStr}</span>
+                <span className={styles.value} suppressHydrationWarning>{timeStr}</span>
             </div>
             <div className={styles.right}>
                 <span className={styles.brand}>MARKETMIND</span>
-                <span className={styles.date}>{dateStr}</span>
+                <span className={styles.date} suppressHydrationWarning>{dateStr}</span>
             </div>
         </div>
     );

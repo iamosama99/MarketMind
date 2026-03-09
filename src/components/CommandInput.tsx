@@ -1,6 +1,7 @@
 "use client";
 
 import { useChatContext } from "@/lib/chat-context";
+import { useApiKeyContext } from "@/lib/api-key-context";
 import { useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
 import styles from "./CommandInput.module.css";
@@ -15,14 +16,16 @@ const SUGGESTIONS = [
 
 export default function CommandInput() {
     const { sendMessage, status } = useChatContext();
+    const { hasApiKey, setShowModal } = useApiKeyContext();
     const [inputValue, setInputValue] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
 
     const isStreaming = status === "streaming" || status === "submitted";
+    const isDisabled = isStreaming || !hasApiKey;
 
     const onSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!inputValue.trim() || isStreaming) return;
+        if (!inputValue.trim() || isDisabled) return;
         setShowSuggestions(false);
         sendMessage({ text: inputValue.trim() });
         setInputValue("");
@@ -64,11 +67,11 @@ export default function CommandInput() {
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    onFocus={() => setShowSuggestions(true)}
+                    onFocus={() => hasApiKey ? setShowSuggestions(true) : setShowModal(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    placeholder="Enter analysis query..."
+                    placeholder={hasApiKey ? "Enter analysis query..." : "Set your OpenAI API key to start..."}
                     className={styles.input}
-                    disabled={isStreaming}
+                    disabled={isDisabled}
                     autoComplete="off"
                     spellCheck={false}
                     id="command-input"
@@ -76,7 +79,7 @@ export default function CommandInput() {
                 <button
                     type="submit"
                     className={styles.sendBtn}
-                    disabled={!inputValue.trim() || isStreaming}
+                    disabled={!inputValue.trim() || isDisabled}
                     aria-label="Submit query"
                     id="command-submit"
                 >

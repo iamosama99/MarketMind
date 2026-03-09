@@ -4,7 +4,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 export const config = {
-    matcher: ["/api/chat"],
+    matcher: ["/api/chat", "/api/graphql"],
 };
 
 // Lazy-initialize so dev environments work without Upstash credentials

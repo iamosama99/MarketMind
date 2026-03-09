@@ -9,9 +9,10 @@
 // state across useChat calls by id.
 // ============================================
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useApiKeyContext } from "./api-key-context";
 
 type ChatHook = ReturnType<typeof useChat>;
 
@@ -24,8 +25,22 @@ interface ChatContextValue {
 const ChatContext = createContext<ChatContextValue | null>(null);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+    const { apiKey } = useApiKeyContext();
+
+    // Dynamic headers resolver — called on each request so it always
+    // uses the latest API key without re-creating the transport.
+    const transport = useMemo(
+        () =>
+            new DefaultChatTransport({
+                api: "/api/chat",
+                headers: (): Record<string, string> => (apiKey ? { "X-Api-Key": apiKey } : {}),
+            }),
+        [apiKey]
+    );
+
     const { messages, status, sendMessage } = useChat({
         id: "market-feed",
+        transport,
     });
 
     return (

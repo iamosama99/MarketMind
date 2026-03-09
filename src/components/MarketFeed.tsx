@@ -7,6 +7,18 @@ import AgentPipelineIndicator from "./AgentPipelineIndicator";
 import styles from "./MarketFeed.module.css";
 import genStyles from "./generative/generative.module.css";
 
+/** Parse **bold** markdown into React elements (safe — no innerHTML). */
+function renderInlineMarkdown(text: string, boldClass: string): React.ReactNode[] {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((segment, i) =>
+        i % 2 === 1 ? (
+            <strong key={i} className={boldClass}>{segment}</strong>
+        ) : (
+            <span key={i}>{segment}</span>
+        )
+    );
+}
+
 export default function MarketFeed() {
     const { messages, status } = useChatContext();
 
@@ -60,7 +72,7 @@ export default function MarketFeed() {
                                         <span className={styles.agentDot} />
                                         MARKETMIND AGENT
                                     </div>
-                                    <span className={styles.timestamp}>
+                                    <span className={styles.timestamp} suppressHydrationWarning>
                                         {new Date().toLocaleTimeString("en-US", {
                                             hour: "2-digit",
                                             minute: "2-digit",
@@ -95,31 +107,15 @@ export default function MarketFeed() {
                                                             return (
                                                                 <div key={k} className={styles.bulletItem}>
                                                                     <span className={styles.bullet}>›</span>
-                                                                    <span
-                                                                        dangerouslySetInnerHTML={{
-                                                                            __html: line
-                                                                                .slice(2)
-                                                                                .replace(
-                                                                                    /\*\*(.*?)\*\*/g,
-                                                                                    '<strong class="' + styles.bold + '">$1</strong>'
-                                                                                ),
-                                                                        }}
-                                                                    />
+                                                                    <span>{renderInlineMarkdown(line.slice(2), styles.bold)}</span>
                                                                 </div>
                                                             );
                                                         }
                                                         if (line.trim() === "") return <br key={k} />;
                                                         return (
-                                                            <p
-                                                                key={k}
-                                                                className={styles.paragraph}
-                                                                dangerouslySetInnerHTML={{
-                                                                    __html: line.replace(
-                                                                        /\*\*(.*?)\*\*/g,
-                                                                        '<strong class="' + styles.bold + '">$1</strong>'
-                                                                    ),
-                                                                }}
-                                                            />
+                                                            <p key={k} className={styles.paragraph}>
+                                                                {renderInlineMarkdown(line, styles.bold)}
+                                                            </p>
                                                         );
                                                     })}
                                                 </div>

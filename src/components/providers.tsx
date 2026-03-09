@@ -2,7 +2,9 @@
 
 import { Provider, createClient, cacheExchange, fetchExchange } from "urql";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ApiKeyProvider } from "@/lib/api-key-context";
 import { ChatProvider } from "@/lib/chat-context";
+import ApiKeyModal from "@/components/ApiKeyModal";
 
 const client = createClient({
     url: "/api/graphql",
@@ -13,9 +15,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     return (
         <Provider value={client}>
             <TooltipProvider delayDuration={200}>
-                <ChatProvider>
-                    {children}
-                </ChatProvider>
+                <ApiKeyProvider>
+                    <ChatProvider>
+                        {children}
+                        <ApiKeyModal />
+                    </ChatProvider>
+                </ApiKeyProvider>
             </TooltipProvider>
         </Provider>
     );

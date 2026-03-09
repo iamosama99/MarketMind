@@ -61,7 +61,7 @@ function detectMarketFilter(query: string): string | null {
         return "IN";
     }
     if (
-        lower.includes("us ") ||
+        /\bus\b/.test(lower) ||
         lower.includes("american") ||
         lower.includes("s&p") ||
         lower.includes("nasdaq")

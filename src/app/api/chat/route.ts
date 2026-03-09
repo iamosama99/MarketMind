@@ -1,4 +1,4 @@
-import { streamText, convertToModelMessages } from "ai";
+import { streamText, convertToModelMessages, stepCountIs } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { getMarketSummary, getSectorData, getEarningsReports, getMarketIndices, getMarketNews } from "@/lib/market-data-service";
 import {
@@ -23,9 +23,11 @@ const MAX_MESSAGE_LENGTH = 4_000;
 const PIPELINE_TIMEOUT_MS = 11_000;
 
 // ── Provider Selection ──
-function getModel() {
-    if (process.env.OPENAI_API_KEY) {
-        const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// NOTE: User-provided API keys (BYOK) are NEVER logged or persisted server-side.
+function getModel(apiKey?: string) {
+    const key = apiKey || process.env.OPENAI_API_KEY;
+    if (key) {
+        const openai = createOpenAI({ apiKey: key });
         return openai(process.env.OPENAI_MODEL || "gpt-4o");
     }
 
@@ -189,12 +191,17 @@ export async function POST(req: Request) {
         : "";
     const userQuery = sanitizeQuery(rawQuery);
 
+    // ── BYOK: Extract user-provided API key from header ──
+    // Key is never logged or persisted — used only for this request.
+    const userApiKey = req.headers.get("x-api-key") || undefined;
+    const effectiveKey = userApiKey || process.env.OPENAI_API_KEY;
+
     let systemPrompt: string;
     let agentPipeline: string[] = [];
 
     // ── Run LangGraph multi-agent pipeline ──
-    // Only run if OpenAI API key is available (LangGraph agents need it)
-    if (process.env.OPENAI_API_KEY && userQuery) {
+    // Only run if an OpenAI API key is available (env or BYOK)
+    if (effectiveKey && userQuery) {
         const canaryToken = generateCanaryToken();
 
         try {
@@ -216,27 +223,27 @@ export async function POST(req: Request) {
                 systemPrompt = result.synthesisPrompt || FALLBACK_SYSTEM_PROMPT;
                 agentPipeline = result.agentPipeline || [];
 
-                // Check for canary token leakage in the synthesis prompt output
-                if (result.synthesisPrompt?.includes(canaryToken)) {
-                    // Expected — canary is in the system prompt for detection.
-                    // If it ever appears in the streamed *output*, log it server-side.
-                }
+                // Canary token is embedded in the system prompt for injection detection.
+                // If it leaks into streamed output, it indicates a prompt-injection attack.
             } else {
                 // Pipeline timed out — graceful degradation
                 console.warn(`[MarketMind] Pipeline timeout after ${PIPELINE_TIMEOUT_MS}ms, using fallback`);
-                systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + await getMarketSummary();
+                const summary = await getMarketSummary().catch(() => "");
+                systemPrompt = FALLBACK_SYSTEM_PROMPT + (summary ? "\n\nCURRENT MARKET DATA:\n" + summary : "");
                 agentPipeline = ["⚠️ Timeout Fallback"];
             }
 
             console.log(`[MarketMind] Agent pipeline: ${agentPipeline.join(" → ")}`);
         } catch (error) {
             console.error("[MarketMind] LangGraph pipeline error, falling back:", error);
-            systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + await getMarketSummary();
+            const summary = await getMarketSummary().catch(() => "");
+            systemPrompt = FALLBACK_SYSTEM_PROMPT + (summary ? "\n\nCURRENT MARKET DATA:\n" + summary : "");
             agentPipeline = ["⚠️ Fallback"];
         }
     } else {
         // No API key or no query — use fallback
-        systemPrompt = FALLBACK_SYSTEM_PROMPT + "\n\nCURRENT MARKET DATA:\n" + await getMarketSummary();
+        const summary = await getMarketSummary().catch(() => "");
+        systemPrompt = FALLBACK_SYSTEM_PROMPT + (summary ? "\n\nCURRENT MARKET DATA:\n" + summary : "");
         agentPipeline = ["🤖 Direct"];
     }
 
@@ -244,10 +251,11 @@ export async function POST(req: Request) {
     // The LangGraph pipeline enriches the system prompt;
     // streamText handles the actual streaming + tool execution
     const result = streamText({
-        model: getModel(),
+        model: getModel(userApiKey),
         system: systemPrompt,
         messages: modelMessages,
         tools: getToolDefinitions(),
+        stopWhen: stepCountIs(3),
         maxOutputTokens: 1500,
         temperature: 0.7,
     });

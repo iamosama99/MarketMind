@@ -16,8 +16,15 @@ interface IndexData {
     changePercent: number;
 }
 
-export default function TickerBar() {
-    const [{ data, fetching }, reexecute] = useQuery({ query: GET_INDICES });
+interface TickerBarProps {
+    market?: "US" | "IN";
+}
+
+export default function TickerBar({ market }: TickerBarProps) {
+    const [{ data, fetching }, reexecute] = useQuery({
+        query: GET_INDICES,
+        variables: market ? { market } : {},
+    });
 
     const refresh = useCallback(() => {
         reexecute({ requestPolicy: "network-only" });

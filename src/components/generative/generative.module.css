@@ -528,3 +528,66 @@
     background: var(--green);
     animation: pulse 1.5s ease-in-out infinite;
 }
+
+/* ── News Skeleton ── */
+.newsSkeletonItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.newsSkeletonBadge {
+    width: 72px;
+    height: 20px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(255, 255, 255, 0.06) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.newsSkeletonContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.newsSkeletonLine {
+    height: 10px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(0, 255, 136, 0.08) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.newsSkeletonLineShort { width: 40%; }
+.newsSkeletonLineMedium { width: 70%; }
+.newsSkeletonLineLong { width: 92%; }
+
+/* ── Heatmap Skeleton ── */
+.heatmapSkeleton {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-2);
+}
+
+.heatmapSkeletonCell {
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(0, 255, 136, 0.06) 50%, var(--bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.heatmapSkeletonCell:nth-child(2n) {
+    animation-delay: 0.3s;
+}
+
+.heatmapSkeletonCell:nth-child(3n) {
+    animation-delay: 0.6s;
+}

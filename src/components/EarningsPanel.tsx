@@ -20,8 +20,15 @@ interface EarningsItem {
     date: string;
 }
 
-export default function EarningsPanel() {
-    const [{ data, fetching }] = useQuery({ query: GET_EARNINGS });
+interface EarningsPanelProps {
+    market?: "US" | "IN";
+}
+
+export default function EarningsPanel({ market }: EarningsPanelProps) {
+    const [{ data, fetching }] = useQuery({
+        query: GET_EARNINGS,
+        variables: market ? { market } : {},
+    });
 
     if (fetching || !data) {
         return (

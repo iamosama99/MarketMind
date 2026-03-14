@@ -166,8 +166,17 @@ export default function NewsList() {
 
             <div style={{ flex: 1, overflowY: "auto", padding: "var(--space-2) var(--space-3)" }}>
                 {loading ? (
-                    <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", padding: "var(--space-4)" }}>
-                        Fetching live news...
+                    <div style={{ display: "flex", flexDirection: "column", padding: "var(--space-2) 0" }}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className={styles.newsSkeletonItem}>
+                                <div className={styles.newsSkeletonBadge} />
+                                <div className={styles.newsSkeletonContent}>
+                                    <div className={`${styles.newsSkeletonLine} ${styles.newsSkeletonLineLong}`} />
+                                    <div className={`${styles.newsSkeletonLine} ${styles.newsSkeletonLineMedium}`} />
+                                    <div className={`${styles.newsSkeletonLine} ${styles.newsSkeletonLineShort}`} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : articles.length === 0 ? (
                     <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", padding: "var(--space-4)" }}>

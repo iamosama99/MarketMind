@@ -1,10 +1,11 @@
 "use client";
 
 import { useQuery } from "urql";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { GET_SECTORS } from "@/lib/queries";
 import { Treemap, Tooltip, ResponsiveContainer } from "recharts";
 import styles from "./SectorHeatmap.module.css";
+import genStyles from "./generative/generative.module.css";
 
 const POLL_INTERVAL_MS = 5 * 60_000; // 5 minutes, matches server TTL
 
@@ -186,8 +187,18 @@ function CustomTooltip({
     );
 }
 
-export default function SectorHeatmap() {
-    const [{ data: queryData, fetching }, reexecute] = useQuery({ query: GET_SECTORS });
+interface SectorHeatmapProps {
+    market?: "US" | "IN";
+}
+
+export default function SectorHeatmap({ market }: SectorHeatmapProps) {
+    const bodyRef = useRef<HTMLDivElement>(null);
+    const [resizeKey, setResizeKey] = useState(0);
+
+    const [{ data: queryData, fetching }, reexecute] = useQuery({
+        query: GET_SECTORS,
+        variables: market ? { market } : {},
+    });
 
     const refresh = useCallback(() => {
         reexecute({ requestPolicy: "network-only" });
@@ -197,6 +208,23 @@ export default function SectorHeatmap() {
         const id = setInterval(refresh, POLL_INTERVAL_MS);
         return () => clearInterval(id);
     }, [refresh]);
+
+    useEffect(() => {
+        const el = bodyRef.current;
+        if (!el) return;
+        let rafId: number;
+        const observer = new ResizeObserver(() => {
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                setResizeKey((k) => k + 1);
+            });
+        });
+        observer.observe(el);
+        return () => {
+            observer.disconnect();
+            cancelAnimationFrame(rafId);
+        };
+    }, []);
 
     if (fetching && !queryData) {
         return (
@@ -208,7 +236,11 @@ export default function SectorHeatmap() {
                     </div>
                 </div>
                 <div className={styles.body}>
-                    <div className={styles.skeleton}>Loading sector data...</div>
+                    <div className={genStyles.heatmapSkeleton}>
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div key={i} className={genStyles.heatmapSkeletonCell} />
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -236,12 +268,13 @@ export default function SectorHeatmap() {
                     AI Vulnerability Heatmap
                 </div>
                 <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                    <div className="badge badge-amber">NIFTY</div>
+                    {(!market || market === "IN") && <div className="badge badge-amber">NIFTY</div>}
+                    {(!market || market === "US") && <div className="badge badge-blue">S&P</div>}
                     <div className="badge badge-red">LIVE</div>
                 </div>
             </div>
-            <div className={styles.body}>
-                <ResponsiveContainer width="100%" height="100%">
+            <div className={styles.body} ref={bodyRef}>
+                <ResponsiveContainer key={resizeKey} width="100%" height="100%">
                     <Treemap
                         data={treeData}
                         dataKey="value"
